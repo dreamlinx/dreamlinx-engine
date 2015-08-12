@@ -1,0 +1,28 @@
+# Package Files #
+*.war
+*.ear
+
+# Virtual machine crash logs
+hs_err_pid*
+
+# Backup files
+*~
+*.swp
+
+# User project files
+.classpath
+.project
+.settings/
+
+# Binaries
+*.class
+target/
+bin/
+dist/
+
+# Trash directories
+*DS_Store
+
+# Thumbnails
+.directory
+Thumbs.db
