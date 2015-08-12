@@ -107,7 +107,7 @@ public final class Engine {
 		logger = Log.getLogger();
 
 		if (logger.isInfoEnabled())
-			logger.info("DreamLinx engine : version " + Version.get());
+			logger.info("DreamLinx Engine : version " + Version.get());
 
 		Log.change(configuration.getLogLevel());
 
@@ -120,26 +120,28 @@ public final class Engine {
 
 		memory.init(configuration);
 
-		// Shutdown
-		if (shutdown != null) {
-			Runtime.getRuntime().addShutdownHook(new Thread() {
-
-				@Override
-				public void run()
-				{
-					try {
-						shutdown.shut();
-					}
-					catch (Exception e) {
-						logger.error("", e);
-					}
-				}
-			});
-		}
-
 		// Defined bootstrap
 		if (bootstrap != null)
 			bootstrap.boot(configuration);
+
+		// Shutdown
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+
+			@Override
+			public void run()
+			{
+				try {
+					if (shutdown != null)
+						shutdown.shut();
+
+					if (logger.isDebugEnabled())
+						logger.debug("DreamLinx Engine is halted.");
+				}
+				catch (Exception e) {
+					logger.error("", e);
+				}
+			}
+		});
 
 		if (logger.isDebugEnabled())
 			logger.debug("Bootstrap completed.");
