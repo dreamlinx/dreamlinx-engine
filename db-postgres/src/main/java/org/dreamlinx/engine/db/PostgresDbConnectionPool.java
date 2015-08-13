@@ -76,6 +76,11 @@ public final class PostgresDbConnectionPool extends DbConnectionPool {
 		connPool.setUser(properties.getUsername());
 		connPool.setPassword(properties.getPassword());
 		connPool.setMaxConnections(properties.getPoolSize());
+
+		if (logger.isDebugEnabled())
+			logger.debug(String.format("ConnectionPool '%s' connected to '%s:%d/%s'",
+				connPool.getDataSourceName(), connPool.getServerName(),
+				connPool.getPortNumber(), connPool.getDatabaseName()));
 	}
 
 	@Override

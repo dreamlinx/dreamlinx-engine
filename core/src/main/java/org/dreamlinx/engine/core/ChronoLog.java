@@ -70,7 +70,7 @@ public class ChronoLog extends Log {
 	public static Boolean start(Object thisInstance, Level logLevel)
 	{
 		Validate.notNull(thisInstance, "thisInstance cannot be null");
-		if (! logger.isEnabledFor(logLevel))
+		if (! rootLogger.isEnabledFor(logLevel))
 			return false;
 
 		StopWatch sw = timers.get(thisInstance.hashCode());
@@ -80,7 +80,7 @@ public class ChronoLog extends Log {
 		}
 
 		if (sw.isStarted()) {
-			logger.warn("Trace timer is already started.");
+			rootLogger.warn("Trace timer is already started.");
 			return false;
 		}
 
@@ -132,19 +132,19 @@ public class ChronoLog extends Log {
 		Validate.notNull(thisInstance, "thisInstance cannot be null");
 
 		Long msTime = - 1L;
-		if (! logger.isEnabledFor(logLevel))
+		if (! rootLogger.isEnabledFor(logLevel))
 			return msTime;
 
 		StopWatch sw = timers.get(thisInstance.hashCode());
 		if (sw == null || ! sw.isStarted()) {
-			logger.warn("Trace timer not yet started.");
+			rootLogger.warn("Trace timer not yet started.");
 			return msTime;
 		}
 
 		sw.stop();
 		msTime = sw.getTime();
 
-		logger.log(logLevel, String.format(
+		rootLogger.log(logLevel, String.format(
 			"Execution time of task '%s': %s (%d millis)",
 			taskName, sw.toString(), msTime));
 

@@ -104,6 +104,11 @@ public final class OracleDbConnectionPool extends DbConnectionPool {
 
 			notifRegs = new LinkedList<>();
 			queueRegs = new LinkedList<>();
+
+			if (logger.isDebugEnabled())
+				logger.debug(String.format("ConnectionPool '%s' connected to '%s:%d/%s'",
+					connPool.getDataSourceName(), connPool.getServerName(),
+					connPool.getPortNumber(), connPool.getDatabaseName()));
 		}
 		catch (SQLException e) {
 			throw new DatabaseException(e);

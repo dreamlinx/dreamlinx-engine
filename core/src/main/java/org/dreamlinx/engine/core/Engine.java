@@ -134,8 +134,8 @@ public final class Engine {
 					if (shutdown != null)
 						shutdown.shut();
 
-					if (logger.isDebugEnabled())
-						logger.debug("DreamLinx Engine is halted.");
+					if (logger.isInfoEnabled())
+						logger.info("DreamLinx Engine is halted.");
 				}
 				catch (Exception e) {
 					logger.error("", e);

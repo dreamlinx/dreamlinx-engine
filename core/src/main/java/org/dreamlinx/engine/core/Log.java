@@ -22,8 +22,8 @@ package org.dreamlinx.engine.core;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.rolling.RollingFileAppender;
@@ -43,36 +43,83 @@ public class Log {
 	private static final String DEFAULT_PATTERN_LAYOUT =
 		"%d{ISO8601} [%p] (%C{1}.%M:%L): %m%n";
 
-	protected static Logger logger;
+	protected static Logger rootLogger;
 
 	/**
-	 * Singleton instance of the Logger.
+	 * The Root Logger.
 	 * 
 	 * @return Logger
 	 */
 	public static Logger getLogger()
 	{
-		if (logger == null)
+		if (rootLogger == null)
 			throw new InitializationException(Log.class);
 
-		return logger;
+		return rootLogger;
 	}
 
 	/**
-	 * Change Logger level.
+	 * Return the right Logger for the class from repository.
+	 * 
+	 * @param Class<?>
+	 * @return Logger
+	 */
+	public static Logger getLogger(Class<?> clazz)
+	{
+		Validate.notNull(clazz, "class cannot be null.");
+		if (rootLogger == null)
+			throw new InitializationException(Log.class);
+
+		return rootLogger.getLoggerRepository().getLogger(clazz.getName());
+	}
+
+	/**
+	 * Define the level of the Root Logger.
 	 * 
 	 * @param Level
 	 */
 	public static void change(Level level)
 	{
 		Validate.notNull(level, "level cannot be null.");
-		if (logger == null)
+		if (rootLogger == null)
 			throw new InitializationException(Log.class);
 
-		logger.setLevel(level);
+		rootLogger.setLevel(level);
 
-		if (logger.isDebugEnabled())
-			logger.debug(String.format("Logger level setted to '%s'.", level));
+		if (rootLogger.isDebugEnabled())
+			rootLogger.debug(String.format("Logger level setted to '%s'.", level));
+	}
+
+	/**
+	 * Define the level of logging for a specified class.
+	 * 
+	 * @param Level
+	 * @param Class<?>
+	 */
+	public static void change(Level level, Class<?> clazz)
+	{
+		Validate.notNull(level, "level cannot be null.");
+		Validate.notNull(clazz, "class cannot be null.");
+		if (rootLogger == null)
+			throw new InitializationException(Log.class);
+
+		change(level, clazz.getName());
+	}
+
+	/**
+	 * Define the level of logging for a specified package.
+	 * 
+	 * @param Level
+	 * @param Class<?>
+	 */
+	public static void change(Level level, Package pk)
+	{
+		Validate.notNull(level, "level cannot be null.");
+		Validate.notNull(pk, "package cannot be null.");
+		if (rootLogger == null)
+			throw new InitializationException(Log.class);
+
+		change(level, pk.getName());
 	}
 
 	//
@@ -102,8 +149,8 @@ public class Log {
 	 */
 	protected static void init(Level level, String patternLayout, String filename, RollingPolicy rollingPolicy, boolean hasConsole)
 	{
-		if (logger != null) {
-			logger.warn("Logger already initialized.");
+		if (rootLogger != null) {
+			rootLogger.warn("Logger already initialized.");
 			return;
 		}
 
@@ -111,7 +158,7 @@ public class Log {
 		if (StringUtils.isBlank(filename))
 			Validate.isTrue(hasConsole, "hasConsole must be true if filename is null");
 
-		logger = Logger.getRootLogger();
+		rootLogger = LogManager.getRootLogger();
 		PatternLayout layout = new PatternLayout(
 			(patternLayout == null) ? DEFAULT_PATTERN_LAYOUT : patternLayout);
 
@@ -127,21 +174,20 @@ public class Log {
 				app.setRollingPolicy(rollingPolicy);
 
 			app.activateOptions();
-			logger.addAppender(app);
+			rootLogger.addAppender(app);
 		}
 
-		if (hasConsole) {
+		if (hasConsole)
+			rootLogger.getAppender(APP_CONSOLE_NAME).setLayout(layout);
+		else
+			rootLogger.removeAppender(APP_CONSOLE_NAME);
 
-			ConsoleAppender app = new ConsoleAppender();
-			app.setName(APP_CONSOLE_NAME);
-			app.setTarget("System.out");
-			app.setLayout(layout);
+		rootLogger.setLevel(level);
+	}
 
-			app.activateOptions();
-			logger.addAppender(app);
-		}
-
-		logger.setLevel(level);
+	protected static void change(Level level, String name)
+	{
+		rootLogger.getLoggerRepository().getLogger(name).setLevel(level);
 	}
 
 	protected Log() {}
