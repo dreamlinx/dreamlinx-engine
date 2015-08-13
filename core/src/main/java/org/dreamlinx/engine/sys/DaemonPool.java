@@ -39,7 +39,7 @@ import org.dreamlinx.engine.error.InitializationException;
  */
 public class DaemonPool {
 
-	private static final Logger logger = Log.getLogger();
+	private static final Logger logger = Log.getEngineLogger();
 
 	private static ThreadPoolNotifier pool;
 

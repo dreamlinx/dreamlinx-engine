@@ -35,7 +35,7 @@ import org.dreamlinx.engine.core.Log;
  */
 public abstract class Daemon<T> implements Callable<T> {
 
-	protected static final Logger logger = Log.getLogger();
+	protected static final Logger logger = Log.getEngineLogger();
 
 	private boolean breakOnError = false;
 	private transient boolean running = false;

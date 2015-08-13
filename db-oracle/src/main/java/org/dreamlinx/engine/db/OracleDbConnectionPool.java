@@ -52,7 +52,7 @@ import org.dreamlinx.engine.fn.MathFn;
  */
 public final class OracleDbConnectionPool extends DbConnectionPool {
 
-	protected static final Logger logger = Log.getLogger();
+	protected static final Logger logger = Log.getEngineLogger();
 
 	private static OracleDbConnectionPool instance;
 

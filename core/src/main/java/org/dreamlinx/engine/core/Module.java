@@ -28,7 +28,7 @@ import org.apache.log4j.Logger;
  */
 public abstract class Module {
 
-	protected static final Logger logger = Log.getLogger();
+	protected static final Logger logger = Log.getEngineLogger();
 
 	public static void execute(Class<? extends Module> module) throws Exception
 	{

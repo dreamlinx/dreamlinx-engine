@@ -70,7 +70,35 @@ public class Log {
 		if (rootLogger == null)
 			throw new InitializationException(Log.class);
 
-		return rootLogger.getLoggerRepository().getLogger(clazz.getName());
+		return getLogger(clazz.getName());
+	}
+
+	/**
+	 * Return the right Logger for the name from repository.
+	 * 
+	 * @param String name
+	 * @return Logger
+	 */
+	public static Logger getLogger(String name)
+	{
+		Validate.notBlank(name, "name cannot be null.");
+		if (rootLogger == null)
+			throw new InitializationException(Log.class);
+
+		return rootLogger.getLoggerRepository().getLogger(name);
+	}
+
+	/**
+	 * The internal Logger for engine.
+	 * 
+	 * @return Logger
+	 */
+	public static Logger getEngineLogger()
+	{
+		if (rootLogger == null)
+			throw new InitializationException(Log.class);
+
+		return getLogger("org.dreamlinx.engine");
 	}
 
 	/**
@@ -107,19 +135,19 @@ public class Log {
 	}
 
 	/**
-	 * Define the level of logging for a specified package.
+	 * Define the level of logging for a name.
 	 * 
 	 * @param Level
-	 * @param Class<?>
+	 * @param String name
 	 */
-	public static void change(Level level, Package pk)
+	public static void change(Level level, String name)
 	{
 		Validate.notNull(level, "level cannot be null.");
-		Validate.notNull(pk, "package cannot be null.");
+		Validate.notBlank(name, "name cannot be null.");
 		if (rootLogger == null)
 			throw new InitializationException(Log.class);
 
-		change(level, pk.getName());
+		getLogger(name).setLevel(level);
 	}
 
 	//
@@ -137,7 +165,7 @@ public class Log {
 	}
 
 	/**
-	 * Initialize the Logger with the `Level`. The `filename` and `patter`,
+	 * Initialize the Root Logger with the `Level`. The `filename` and `patter`,
 	 * if supplied, convey informations to setup an additional FILE appender.
 	 * The `hasConsole` governs the appender to console.
 	 * 
@@ -154,7 +182,6 @@ public class Log {
 			return;
 		}
 
-		Validate.notNull(level, "level cannot be null.");
 		if (StringUtils.isBlank(filename))
 			Validate.isTrue(hasConsole, "hasConsole must be true if filename is null");
 
@@ -182,12 +209,8 @@ public class Log {
 		else
 			rootLogger.removeAppender(APP_CONSOLE_NAME);
 
-		rootLogger.setLevel(level);
-	}
-
-	protected static void change(Level level, String name)
-	{
-		rootLogger.getLoggerRepository().getLogger(name).setLevel(level);
+		if (level != null)
+			change(level);
 	}
 
 	protected Log() {}

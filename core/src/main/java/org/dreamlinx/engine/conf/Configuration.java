@@ -21,6 +21,9 @@
 package org.dreamlinx.engine.conf;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.log4j.Level;
@@ -38,15 +41,17 @@ public class Configuration implements Serializable {
 
 	@ConfNotBlank
 	private String nodeName;
+
 	@ConfNotBlank
 	private String pidFile;
-	@ConfNotNull
-	private Level logLevel;
 
-	private Boolean traceMode = false;
+	@ConfNotNull
+	private Map<String, Level> logLevels;
+
+	private Boolean selfCheckMode = false;
 	private String logPatternLayout;
-	private Boolean logConsole = true;
 	private String logFile;
+	private Boolean logConsole = true;
 	private RollingPolicy logRollPolicy;
 
 	public String getNodeName()
@@ -61,12 +66,33 @@ public class Configuration implements Serializable {
 
 	public Level getLogLevel()
 	{
-		return logLevel;
+		Set<String> keys = logLevels.keySet();
+		if (keys.size() == 1 && keys.iterator().next() == null)
+			return logLevels.get(null);
+
+		return null;
 	}
 
-	public void setLogLevel(Level logLevel)
+	public void setLogLevel(Level level)
 	{
-		this.logLevel = logLevel;
+		if (logLevels == null)
+			logLevels = new HashMap<>();
+
+		logLevels.put(null, level);
+	}
+
+	public Map<String, Level> getLogLevels()
+	{
+		return logLevels;
+	}
+
+	public void setLogLevels(Map<String, String> logLevels)
+	{
+		this.logLevels = new HashMap<>();
+
+		for (String name : logLevels.keySet())
+			this.logLevels.put(name,
+				Level.toLevel(logLevels.get(name)));
 	}
 
 	public String getLogFile()
@@ -119,14 +145,14 @@ public class Configuration implements Serializable {
 		this.pidFile = pidFile;
 	}
 
-	public Boolean getTraceMode()
+	public Boolean getSelfCheckMode()
 	{
-		return traceMode;
+		return selfCheckMode;
 	}
 
-	public void setTraceMode(Boolean traceMode)
+	public void setSelfCheckMode(Boolean traceMode)
 	{
-		this.traceMode = traceMode;
+		this.selfCheckMode = traceMode;
 	}
 
 	@Override

@@ -64,7 +64,7 @@ import org.dreamlinx.engine.sys.data.AutoCloseableIterator;
  */
 public abstract class DbDao<M extends Model> {
 
-	protected static final Logger logger = Log.getLogger();
+	protected static final Logger logger = Log.getEngineLogger();
 
 	static final int MAP_INIT_SIZE = 512;
 	static DbConnectionPool connectionPool;
@@ -315,7 +315,7 @@ public abstract class DbDao<M extends Model> {
 					M model = queryForModel(rs);
 
 					Key key = model.getKey();
-					if (Engine.getConfiguration() != null && Engine.getConfiguration().getTraceMode())
+					if (Engine.getConfiguration() != null && Engine.getConfiguration().getSelfCheckMode())
 						if (map.containsKey(key))
 							throw new CollisionException(key.hashCode(), model, map.get(key));
 
@@ -388,7 +388,7 @@ public abstract class DbDao<M extends Model> {
 					M model = queryForModel(rs);
 
 					Key key = model.getKey();
-					if (Engine.getConfiguration() != null && Engine.getConfiguration().getTraceMode())
+					if (Engine.getConfiguration() != null && Engine.getConfiguration().getSelfCheckMode())
 						if (map.containsKey(key))
 							throw new CollisionException(key.hashCode(), model, map.get(key));
 

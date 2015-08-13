@@ -24,7 +24,7 @@ import org.dreamlinx.engine.core.Log;
  */
 public abstract class OracleDbQueue implements AQNotificationListener {
 
-	protected static final Logger logger = Log.getLogger();
+	protected static final Logger logger = Log.getEngineLogger();
 
 	private String queueName;
 	private String typeName;

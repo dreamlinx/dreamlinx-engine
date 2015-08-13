@@ -32,7 +32,7 @@ import org.dreamlinx.engine.error.InitializationException;
  */
 public class Memory {
 
-	private static final Logger logger = Log.getLogger();
+	private static final Logger logger = Log.getEngineLogger();
 
 	private Configuration configuration;
 

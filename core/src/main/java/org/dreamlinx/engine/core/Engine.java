@@ -100,16 +100,22 @@ public final class Engine {
 	private void boot() throws Exception
 	{
 		// Log
-		Log.init(Level.INFO,
+		Log.init(null,
 			configuration.getLogPatternLayout(), configuration.getLogFile(),
 			configuration.getLogRollPolicy(), configuration.getLogConsole());
 
-		logger = Log.getLogger();
-
+		logger = Log.getEngineLogger();
 		if (logger.isInfoEnabled())
 			logger.info("DreamLinx Engine : version " + Version.get());
 
-		Log.change(configuration.getLogLevel());
+		// Log level
+		Level level;
+		if ((level = configuration.getLogLevel()) == null) {
+			for (String name : configuration.getLogLevels().keySet())
+				Log.change(configuration.getLogLevels().get(name), name);
+		}
+		else
+			Log.change(level);
 
 		if (logger.isDebugEnabled())
 			logger.debug("Bootstrapping...");

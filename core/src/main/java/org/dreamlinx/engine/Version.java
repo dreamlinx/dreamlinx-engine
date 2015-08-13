@@ -46,13 +46,11 @@ public class Version {
 		if (version == null) {
 
 			try (InputStream in = Version.class.getResourceAsStream(POM_PROPS)) {
-				if (in != null) {
 
-					Properties props = new Properties();
-					props.load(in);
+				Properties props = new Properties();
+				props.load(in);
 
-					version = props.getProperty("version");
-				}
+				version = props.getProperty("version");
 			}
 			catch (Exception e) {
 				version = "?.?";
