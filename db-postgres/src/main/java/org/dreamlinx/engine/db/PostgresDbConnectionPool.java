@@ -39,25 +39,8 @@ import org.postgresql.ds.PGPoolingDataSource;
  */
 public final class PostgresDbConnectionPool extends DbConnectionPool {
 
-	protected static final Logger logger = Log.getEngineLogger();
-
-	private static PostgresDbConnectionPool instance;
-
+	private static final Logger logger = Log.getEngineLogger();
 	private PGPoolingDataSource connPool;
-
-	public static PostgresDbConnectionPool get()
-	{
-		if (instance == null)
-			throw new InitializationException(PostgresDbConnectionPool.class);
-
-		return instance;
-	}
-
-	public static void init(DbProperties properties) throws DatabaseException
-	{
-		instance = new PostgresDbConnectionPool(properties);
-		instance.init();
-	}
 
 	public PostgresDbConnectionPool(DbProperties properties) {
 

@@ -28,5 +28,5 @@ package org.dreamlinx.engine.core;
  */
 public interface Initialize {
 
-	void init() throws Exception;
+	<T extends Memory> void init(T memory) throws Exception;
 }

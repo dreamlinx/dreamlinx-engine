@@ -64,7 +64,7 @@ import org.dreamlinx.engine.sys.data.AutoCloseableIterator;
  */
 public abstract class DbDao<M extends Model> {
 
-	protected static final Logger logger = Log.getEngineLogger();
+	private static final Logger logger = Log.getEngineLogger();
 
 	static final int MAP_INIT_SIZE = 512;
 	static DbConnectionPool connectionPool;
@@ -151,14 +151,10 @@ public abstract class DbDao<M extends Model> {
 		}
 	}
 
-	public static void init(DbConnectionPool connectionPool)
+	public static void init(DbConnectionPool connectionPool) throws DatabaseException
 	{
 		DbDao.connectionPool = connectionPool;
-	}
-
-	public static DbConnectionPool getConnectionPool()
-	{
-		return connectionPool;
+		DbDao.connectionPool.init();
 	}
 
 	//

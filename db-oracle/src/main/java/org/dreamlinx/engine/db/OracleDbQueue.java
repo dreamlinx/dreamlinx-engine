@@ -24,7 +24,7 @@ import org.dreamlinx.engine.core.Log;
  */
 public abstract class OracleDbQueue implements AQNotificationListener {
 
-	protected static final Logger logger = Log.getEngineLogger();
+	private static final Logger logger = Log.getEngineLogger();
 
 	private String queueName;
 	private String typeName;
@@ -65,7 +65,7 @@ public abstract class OracleDbQueue implements AQNotificationListener {
 
 	protected Object[] getValues(AQNotificationEvent event) throws Exception
 	{
-		try (OracleConnection conn = OracleDbConnectionPool.get().open()) {
+		try (OracleConnection conn = (OracleConnection) DbDao.connectionPool.open()) {
 
 			dequeueOpt.setConsumerName(event.getConsumerName());
 

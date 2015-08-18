@@ -45,7 +45,7 @@ import org.dreamlinx.engine.error.DatabaseException;
  */
 public abstract class OracleDbNotification implements DatabaseChangeListener {
 
-	protected static final Logger logger = Log.getEngineLogger();
+	private static final Logger logger = Log.getEngineLogger();
 
 	private Long regId;
 	private String query;

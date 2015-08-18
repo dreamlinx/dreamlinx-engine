@@ -52,27 +52,11 @@ import org.dreamlinx.engine.fn.MathFn;
  */
 public final class OracleDbConnectionPool extends DbConnectionPool {
 
-	protected static final Logger logger = Log.getEngineLogger();
-
-	private static OracleDbConnectionPool instance;
+	private static final Logger logger = Log.getEngineLogger();
 
 	private PoolDataSource connPool;
 	private List<DatabaseChangeRegistration> notifRegs;
 	private List<AQNotificationRegistration> queueRegs;
-
-	public static OracleDbConnectionPool get()
-	{
-		if (instance == null)
-			throw new InitializationException(OracleDbConnectionPool.class);
-
-		return instance;
-	}
-
-	public static void init(DbProperties properties) throws DatabaseException
-	{
-		instance = new OracleDbConnectionPool(properties);
-		instance.init();
-	}
 
 	public OracleDbConnectionPool(DbProperties properties) {
 

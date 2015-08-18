@@ -70,7 +70,7 @@ public final class Engine {
 		boot();
 
 		if (initializeClass != null)
-			initializeClass.newInstance().init();
+			initializeClass.newInstance().init(memory);
 
 		if (kernel == null)
 			kernel = new DefaultKernel();
@@ -89,17 +89,17 @@ public final class Engine {
 		this.kernel = kernel;
 	}
 
-	public void setBootstrapClass(Class<? extends Bootstrap> bootstrap)
+	public void setBootstrap(Class<? extends Bootstrap> bootstrap)
 	{
 		this.bootstrapClass = bootstrap;
 	}
 
-	public void setInitializeClass(Class<? extends Initialize> initialize)
+	public void setInitialize(Class<? extends Initialize> initialize)
 	{
 		this.initializeClass = initialize;
 	}
 
-	public void setShutdownClass(Class<? extends Shutdown> shutdown)
+	public void setShutdown(Class<? extends Shutdown> shutdown)
 	{
 		this.shutdownClass = shutdown;
 	}
@@ -151,7 +151,7 @@ public final class Engine {
 			{
 				try {
 					if (shutdownClass != null)
-						shutdownClass.newInstance().shut();
+						shutdownClass.newInstance().shut(memory);
 
 					if (logger.isInfoEnabled())
 						logger.info("DreamLinx Engine is halted.");

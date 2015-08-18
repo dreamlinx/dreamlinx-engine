@@ -28,5 +28,5 @@ package org.dreamlinx.engine.core;
  */
 public interface Shutdown {
 
-	void shut() throws Exception;
+	<T extends Memory> void shut(T memory) throws Exception;
 }
