@@ -22,6 +22,7 @@ package org.dreamlinx.engine.core;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -208,10 +209,15 @@ public class Log {
 			rootLogger.addAppender(app);
 		}
 
-		if (hasConsole)
-			rootLogger.getAppender(APP_CONSOLE_NAME).setLayout(layout);
-		else
-			rootLogger.removeAppender(APP_CONSOLE_NAME);
+		if (hasConsole) {
+
+			ConsoleAppender app = new ConsoleAppender();
+			app.setName(APP_CONSOLE_NAME);
+			app.setLayout(layout);
+
+			app.activateOptions();
+			rootLogger.addAppender(app);
+		}
 
 		if (level != null)
 			change(level);
