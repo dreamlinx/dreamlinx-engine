@@ -44,6 +44,7 @@ public class Log {
 		"%d{ISO8601} [%p] (%C{1}.%M:%L): %m%n";
 
 	protected static Logger rootLogger;
+	protected static Logger engineLogger;
 
 	/**
 	 * The Root Logger.
@@ -98,7 +99,10 @@ public class Log {
 		if (rootLogger == null)
 			throw new InitializationException(Log.class);
 
-		return getLogger("org.dreamlinx.engine");
+		if (engineLogger == null)
+			engineLogger = getLogger("org.dreamlinx.engine");
+
+		return engineLogger;
 	}
 
 	/**

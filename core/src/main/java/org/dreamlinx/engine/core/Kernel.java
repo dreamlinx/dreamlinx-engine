@@ -32,7 +32,7 @@ import org.dreamlinx.engine.fn.MathFn;
  */
 public abstract class Kernel {
 
-	protected static final Logger logger = Log.getEngineLogger();
+	private static final Logger logger = Log.getEngineLogger();
 
 	/**
 	 * Sleeping for saving CPU when idle.

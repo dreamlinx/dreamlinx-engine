@@ -30,5 +30,5 @@ import org.dreamlinx.engine.conf.Configuration;
  */
 public interface Bootstrap {
 
-	void boot(Configuration configuration) throws Exception;
+	<T extends Configuration> void boot(T configuration) throws Exception;
 }

@@ -20,6 +20,8 @@
 
 package org.dreamlinx.engine.core;
 
+import java.io.Serializable;
+
 import org.apache.log4j.Logger;
 import org.dreamlinx.engine.conf.Configuration;
 import org.dreamlinx.engine.error.InitializationException;
@@ -30,11 +32,12 @@ import org.dreamlinx.engine.error.InitializationException;
  * @author Marco Merli <yohji@dreamlinx.org>
  * @since 1.0
  */
-public class Memory {
+public abstract class Memory implements Serializable {
 
+	private static final long serialVersionUID = - 1045283486879052766L;
 	private static final Logger logger = Log.getEngineLogger();
 
-	private Configuration configuration;
+	protected Configuration configuration;
 
 	final void init(Configuration configuration)
 	{
@@ -49,11 +52,12 @@ public class Memory {
 			logger.debug("Memory initialized.");
 	}
 
-	public Configuration getConfiguration()
+	@SuppressWarnings("unchecked")
+	public <T extends Configuration> T getConfiguration()
 	{
 		if (configuration == null)
 			throw new InitializationException(Memory.class);
 
-		return configuration;
+		return (T) configuration;
 	}
 }

@@ -35,52 +35,53 @@ import org.dreamlinx.engine.error.ConfigurationException;
  */
 public final class Engine {
 
-	private static Logger logger;
 	private static Configuration configuration;
 
 	private Memory memory;
-	private Bootstrap bootstrap;
-	private Initialize initialize;
 	private Kernel kernel;
-	private Shutdown shutdown;
+
+	private Class<? extends Memory> memoryClass;
+	private Class<? extends Bootstrap> bootstrapClass;
+	private Class<? extends Initialize> initializeClass;
+	private Class<? extends Shutdown> shutdownClass;
 
 	public Engine(Configuration configuration) throws ConfigurationException {
 
-		ConfigurationValidator.validate(configuration);
-		Engine.configuration = configuration;
+		this(configuration, null);
 	}
 
-	public static Configuration getConfiguration()
+	public Engine(Configuration configuration, Class<? extends Memory> memoryClass)
+		throws ConfigurationException {
+
+		ConfigurationValidator.validate(configuration);
+
+		Engine.configuration = configuration;
+		this.memoryClass = memoryClass;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T extends Configuration> T getConfiguration()
 	{
-		return configuration;
+		return (T) configuration;
 	}
 
 	public void start() throws Exception
 	{
 		boot();
 
-		if (initialize != null)
-			initialize.init();
+		if (initializeClass != null)
+			initializeClass.newInstance().init();
 
 		if (kernel == null)
-			kernel = new DummyKernel();
+			kernel = new DefaultKernel();
 
 		kernel._alive();
 	}
 
-	public void setBootstrap(Bootstrap bootstrap)
+	@SuppressWarnings("unchecked")
+	public <T extends Memory> T getMemory()
 	{
-		this.bootstrap = bootstrap;
-	}
-
-	public void setInitialize(Initialize initialize)
-	{
-		this.initialize = initialize;
-	}
-
-	public void setMemory(Memory memory)
-	{
-		this.memory = memory;
+		return (T) memory;
 	}
 
 	public void setKernel(Kernel kernel)
@@ -88,9 +89,19 @@ public final class Engine {
 		this.kernel = kernel;
 	}
 
-	public void setShutdown(Shutdown shutdown)
+	public void setBootstrapClass(Class<? extends Bootstrap> bootstrap)
 	{
-		this.shutdown = shutdown;
+		this.bootstrapClass = bootstrap;
+	}
+
+	public void setInitializeClass(Class<? extends Initialize> initialize)
+	{
+		this.initializeClass = initialize;
+	}
+
+	public void setShutdownClass(Class<? extends Shutdown> shutdown)
+	{
+		this.shutdownClass = shutdown;
 	}
 
 	//
@@ -104,7 +115,7 @@ public final class Engine {
 			configuration.getLogPatternLayout(), configuration.getLogFile(),
 			configuration.getLogRollPolicy(), configuration.getLogConsole());
 
-		logger = Log.getEngineLogger();
+		Logger logger = Log.getEngineLogger();
 		if (logger.isInfoEnabled())
 			logger.info("DreamLinx Engine : version " + Version.get());
 
@@ -121,14 +132,16 @@ public final class Engine {
 			logger.debug("Bootstrapping...");
 
 		// Memory
-		if (memory == null)
-			memory = new Memory();
+		if (memoryClass != null)
+			memory = memoryClass.newInstance();
+		else
+			memory = new DefaultMemory();
 
 		memory.init(configuration);
 
 		// Defined bootstrap
-		if (bootstrap != null)
-			bootstrap.boot(configuration);
+		if (bootstrapClass != null)
+			bootstrapClass.newInstance().boot(configuration);
 
 		// Shutdown
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -137,8 +150,8 @@ public final class Engine {
 			public void run()
 			{
 				try {
-					if (shutdown != null)
-						shutdown.shut();
+					if (shutdownClass != null)
+						shutdownClass.newInstance().shut();
 
 					if (logger.isInfoEnabled())
 						logger.info("DreamLinx Engine is halted.");
@@ -153,7 +166,7 @@ public final class Engine {
 			logger.debug("Bootstrap completed.");
 	}
 
-	private class DummyKernel extends Kernel {
+	private class DefaultKernel extends Kernel {
 
 		@Override
 		public void setup() throws Exception
@@ -162,5 +175,10 @@ public final class Engine {
 		@Override
 		public void alive() throws Exception
 		{}
+	}
+
+	private class DefaultMemory extends Memory {
+
+		private static final long serialVersionUID = 1770347889523288053L;
 	}
 }

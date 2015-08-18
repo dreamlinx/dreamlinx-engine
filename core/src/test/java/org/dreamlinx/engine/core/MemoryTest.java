@@ -36,7 +36,7 @@ public class MemoryTest extends UnitTestSupport {
 	@Before
 	public void before()
 	{
-		memory = new Memory();
+		memory = new Mem();
 		memory.init(new Configuration());
 	}
 
@@ -46,3 +46,6 @@ public class MemoryTest extends UnitTestSupport {
 		assertNotNull(memory.getConfiguration());
 	}
 }
+
+@SuppressWarnings("serial")
+class Mem extends Memory {}
