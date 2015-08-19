@@ -28,7 +28,7 @@ import org.dreamlinx.engine.conf.Configuration;
  * @author Marco Merli <yohji@dreamlinx.org>
  * @since 1.0
  */
-public interface Bootstrap {
+public interface Bootstrap<C extends Configuration> {
 
-	<T extends Configuration> void boot(T configuration) throws Exception;
+	void boot(C configuration) throws Exception;
 }

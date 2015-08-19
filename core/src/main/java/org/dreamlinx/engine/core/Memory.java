@@ -22,42 +22,16 @@ package org.dreamlinx.engine.core;
 
 import java.io.Serializable;
 
-import org.apache.log4j.Logger;
-import org.dreamlinx.engine.conf.Configuration;
-import org.dreamlinx.engine.error.InitializationException;
-
 /**
  * The container of instances in memory of the engine.
  * 
  * @author Marco Merli <yohji@dreamlinx.org>
  * @since 1.0
  */
-public abstract class Memory implements Serializable {
+public class Memory implements Serializable {
 
 	private static final long serialVersionUID = - 1045283486879052766L;
-	private static final Logger logger = Log.getEngineLogger();
 
-	protected Configuration configuration;
-
-	final void init(Configuration configuration)
-	{
-		if (this.configuration != null) {
-			logger.warn("Memory already initialized.");
-			return;
-		}
-
-		this.configuration = configuration;
-
-		if (logger.isDebugEnabled())
-			logger.debug("Memory initialized.");
-	}
-
-	@SuppressWarnings("unchecked")
-	public <T extends Configuration> T getConfiguration()
-	{
-		if (configuration == null)
-			throw new InitializationException(Memory.class);
-
-		return (T) configuration;
-	}
+	protected void init() throws Exception
+	{}
 }

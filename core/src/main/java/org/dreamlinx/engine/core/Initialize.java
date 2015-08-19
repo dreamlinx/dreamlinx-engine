@@ -26,7 +26,7 @@ package org.dreamlinx.engine.core;
  * @author Marco Merli <yohji@dreamlinx.org>
  * @since 1.0
  */
-public interface Initialize {
+public interface Initialize<M extends Memory> {
 
-	<T extends Memory> void init(T memory) throws Exception;
+	void init(M memory) throws Exception;
 }

@@ -26,7 +26,7 @@ package org.dreamlinx.engine.core;
  * @author Marco Merli <yohji@dreamlinx.org>
  * @since 1.0
  */
-public interface Shutdown {
+public interface Shutdown<M extends Memory> {
 
-	<T extends Memory> void shut(T memory) throws Exception;
+	void shut(M memory) throws Exception;
 }

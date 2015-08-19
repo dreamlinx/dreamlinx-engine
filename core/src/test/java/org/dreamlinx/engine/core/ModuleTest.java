@@ -33,7 +33,7 @@ public class ModuleTest extends UnitTestSupport {
 	public void execute()
 	{
 		try {
-			Module.execute(M.class);
+			Module.execute(Mod.class);
 		}
 		catch (Exception e) {
 			failWhenExceptionNotExpected(e);
@@ -41,7 +41,7 @@ public class ModuleTest extends UnitTestSupport {
 	}
 }
 
-class M extends Module {
+class Mod extends Module {
 
 	@Override
 	public void init() throws Exception

@@ -20,12 +20,18 @@
 
 package org.dreamlinx.engine.core;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.util.Scanner;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.dreamlinx.engine.Version;
 import org.dreamlinx.engine.conf.Configuration;
 import org.dreamlinx.engine.conf.ConfigurationValidator;
 import org.dreamlinx.engine.error.ConfigurationException;
+import org.dreamlinx.engine.fn.SysFn;
 
 /**
  * Main class of the engine.
@@ -33,73 +39,121 @@ import org.dreamlinx.engine.error.ConfigurationException;
  * @author Marco Merli <yohji@dreamlinx.org>
  * @since 1.0
  */
-public final class Engine {
+public final class Engine<C extends Configuration, M extends Memory> {
 
-	private static Configuration configuration;
+	private static boolean selfCheckMode = false;
 
-	private Memory memory;
-	private Kernel kernel;
+	private C configuration;
+	private M memory;
 
-	private Class<? extends Memory> memoryClass;
-	private Class<? extends Bootstrap> bootstrapClass;
-	private Class<? extends Initialize> initializeClass;
-	private Class<? extends Shutdown> shutdownClass;
+	private Class<? extends Bootstrap<C>> bootstrapClass;
+	private Class<? extends Initialize<M>> initializeClass;
+	private Class<? extends Kernel> kernelClass;
+	private Class<? extends Shutdown<M>> shutdownClass;
 
-	public Engine(Configuration configuration) throws ConfigurationException {
+	public Engine(C configuration, M memory) throws ConfigurationException {
 
-		this(configuration, null);
+		this(configuration);
+
+		this.memory = memory;
 	}
 
-	public Engine(Configuration configuration, Class<? extends Memory> memoryClass)
-		throws ConfigurationException {
+	public Engine(C configuration, Class<M> memory) throws ConfigurationException {
+
+		this(configuration);
+
+		try {
+			this.memory = memory.newInstance();
+		}
+		catch (Exception e) {
+			throw new ConfigurationException(e);
+		}
+	}
+
+	protected Engine(C configuration) throws ConfigurationException {
 
 		ConfigurationValidator.validate(configuration);
 
-		Engine.configuration = configuration;
-		this.memoryClass = memoryClass;
+		this.configuration = configuration;
+		selfCheckMode = configuration.getSelfCheckMode();
 	}
 
-	@SuppressWarnings("unchecked")
-	public static <T extends Configuration> T getConfiguration()
+	public static boolean isSelfCheckMode()
 	{
-		return (T) configuration;
+		return selfCheckMode;
 	}
 
-	public void start() throws Exception
+	//
+	// Launcher
+	//
+
+	public void launch() throws Exception
 	{
 		boot();
 
 		if (initializeClass != null)
 			initializeClass.newInstance().init(memory);
 
-		if (kernel == null)
+		Kernel kernel;
+		if (kernelClass != null)
+			kernel = kernelClass.newInstance();
+		else
 			kernel = new DefaultKernel();
 
 		kernel._alive();
 	}
 
-	@SuppressWarnings("unchecked")
-	public <T extends Memory> T getMemory()
+	public void fork() throws Exception
 	{
-		return (T) memory;
+		new Thread() {
+
+			@Override
+			public void run()
+			{
+				try {
+					launch();
+				}
+				catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}.start();
 	}
 
-	public void setKernel(Kernel kernel)
+	//
+	// Access
+	//
+
+	public C getConfiguration()
 	{
-		this.kernel = kernel;
+		return configuration;
 	}
 
-	public void setBootstrap(Class<? extends Bootstrap> bootstrap)
+	public M getMemory()
+	{
+		return memory;
+	}
+
+	//
+	// Setup
+	//
+
+	public void setBootstrap(Class<? extends Bootstrap<C>> bootstrap)
 	{
 		this.bootstrapClass = bootstrap;
 	}
 
-	public void setInitialize(Class<? extends Initialize> initialize)
+	public void setInitialize(Class<? extends Initialize<M>> initialize)
 	{
 		this.initializeClass = initialize;
 	}
 
-	public void setShutdown(Class<? extends Shutdown> shutdown)
+	public void setKernelClass(Class<? extends Kernel> kernelClass)
+	{
+		this.kernelClass = kernelClass;
+	}
+
+	public void setShutdown(Class<? extends Shutdown<M>> shutdown)
 	{
 		this.shutdownClass = shutdown;
 	}
@@ -110,6 +164,20 @@ public final class Engine {
 
 	private void boot() throws Exception
 	{
+		// PID
+		Integer pid = SysFn.getPid();
+
+		File pidFile = new File(configuration.getPidFile());
+		if (pidFile.exists())
+			throw new IllegalStateException("Pid file already exists - check for another running process or zap the file first.");
+		else
+			pidFile.createNewFile();
+
+		BufferedWriter bw = new BufferedWriter(new FileWriter(pidFile));
+		bw.write(pid.toString());
+		bw.flush();
+		bw.close();
+
 		// Log
 		Log.init(null,
 			configuration.getLogPatternLayout(), configuration.getLogFile(),
@@ -117,7 +185,7 @@ public final class Engine {
 
 		Logger logger = Log.getEngineLogger();
 		if (logger.isInfoEnabled())
-			logger.info("DreamLinx Engine : version " + Version.get());
+			logger.info("DreamLinx Engine " + Version.get());
 
 		// Log level
 		Level level;
@@ -132,12 +200,7 @@ public final class Engine {
 			logger.debug("Bootstrapping...");
 
 		// Memory
-		if (memoryClass != null)
-			memory = memoryClass.newInstance();
-		else
-			memory = new DefaultMemory();
-
-		memory.init(configuration);
+		memory.init();
 
 		// Defined bootstrap
 		if (bootstrapClass != null)
@@ -152,6 +215,16 @@ public final class Engine {
 				try {
 					if (shutdownClass != null)
 						shutdownClass.newInstance().shut(memory);
+
+					File pid = new File(configuration.getPidFile());
+					if (pid.exists()) {
+
+						try (Scanner scanner = new Scanner(pid)) {
+							if (SysFn.getPid().equals(scanner.nextInt()))
+								if (pid.delete() && logger.isDebugEnabled())
+									logger.debug("Pid file is zapped.");
+						}
+					}
 
 					if (logger.isInfoEnabled())
 						logger.info("DreamLinx Engine is halted.");
@@ -175,10 +248,5 @@ public final class Engine {
 		@Override
 		public void alive() throws Exception
 		{}
-	}
-
-	private class DefaultMemory extends Memory {
-
-		private static final long serialVersionUID = 1770347889523288053L;
 	}
 }

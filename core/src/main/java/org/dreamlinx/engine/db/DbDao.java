@@ -157,6 +157,11 @@ public abstract class DbDao<M extends Model> {
 		DbDao.connectionPool.init();
 	}
 
+	public static void shutdown() throws DatabaseException
+	{
+		DbDao.connectionPool.shutdown();
+	}
+
 	//
 	// Supplied
 	//
@@ -311,7 +316,7 @@ public abstract class DbDao<M extends Model> {
 					M model = queryForModel(rs);
 
 					Key key = model.getKey();
-					if (Engine.getConfiguration() != null && Engine.getConfiguration().getSelfCheckMode())
+					if (Engine.isSelfCheckMode())
 						if (map.containsKey(key))
 							throw new CollisionException(key.hashCode(), model, map.get(key));
 
@@ -384,7 +389,7 @@ public abstract class DbDao<M extends Model> {
 					M model = queryForModel(rs);
 
 					Key key = model.getKey();
-					if (Engine.getConfiguration() != null && Engine.getConfiguration().getSelfCheckMode())
+					if (Engine.isSelfCheckMode())
 						if (map.containsKey(key))
 							throw new CollisionException(key.hashCode(), model, map.get(key));
 

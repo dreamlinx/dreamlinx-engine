@@ -24,7 +24,6 @@ import org.apache.log4j.Logger;
 import org.dreamlinx.engine.conf.ConfigurationValidatorTest;
 import org.dreamlinx.engine.core.ChronoLogTest;
 import org.dreamlinx.engine.core.LogTest;
-import org.dreamlinx.engine.core.MemoryTest;
 import org.dreamlinx.engine.core.ModuleTest;
 import org.dreamlinx.engine.db.DbFunctionTest;
 import org.dreamlinx.engine.fn.DateFnTest;
@@ -57,11 +56,9 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
 	// core
-	LogTest.class, ChronoLogTest.class,
+	LogTest.class, ChronoLogTest.class, ModuleTest.class,
 	// conf
 	ConfigurationValidatorTest.class,
-	// core
-	MemoryTest.class, ModuleTest.class,
 	// model
 	KeyTest.class, ModelTest.class,
 	// db
