@@ -18,7 +18,7 @@
  *  along with DreamLinx. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.dreamlinx.engine.sys.data;
+package org.dreamlinx.engine.sys.struct;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -30,67 +30,92 @@ import java.util.Set;
  * @author Marco Merli <yohji@dreamlinx.org>
  * @since 1.0
  */
-public class BiMap<K, V> implements Map<K, V>, Serializable {
+public class BijectiveMap<K, V> implements Map<K, V>, Serializable {
 
 	private static final long serialVersionUID = - 5621712597706407198L;
 
 	private Map<K, V> main;
 	private Map<V, K> reverse;
 
-	public BiMap() {
+	public BijectiveMap() {
 
 		main = new LinkedHashMap<K, V>();
 		reverse = new LinkedHashMap<V, K>();
 	}
 
-	public BiMap(Map<K, V> map) {
+	public BijectiveMap(Map<K, V> map) {
 
 		main = map;
 		for (K k : main.keySet())
 			reverse.put(main.get(k), k);
 	}
 
+	@Override
+	public boolean equals(Object obj)
+	{
+		try {
+			return main.equals(((BijectiveMap<?, ?>) obj).main);
+		}
+		catch (Exception e) {
+			return false;
+		}
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return main.hashCode();
+	}
+
+	@Override
 	public void clear()
 	{
 		main.clear();
 		reverse.clear();
 	}
 
+	@Override
 	public boolean containsKey(Object key)
 	{
 		return main.containsKey(key);
 	}
 
+	@Override
 	public boolean containsValue(Object value)
 	{
 		return main.containsValue(value);
 	}
 
+	@Override
 	public Set<Entry<K, V>> entrySet()
 	{
 		return main.entrySet();
 	}
 
+	@Override
 	public V get(Object key)
 	{
 		return main.get(key);
 	}
 
-	public K getKey(Object value)
+	public K key(V value)
 	{
 		return reverse.get(value);
 	}
 
+	@Override
 	public boolean isEmpty()
 	{
 		return main.isEmpty();
 	}
 
+	@Override
 	public Set<K> keySet()
 	{
 		return main.keySet();
 	}
 
+	@Override
 	public V put(K key, V value)
 	{
 		main.put(key, value);
@@ -99,6 +124,7 @@ public class BiMap<K, V> implements Map<K, V>, Serializable {
 		return value;
 	}
 
+	@Override
 	public void putAll(Map<? extends K, ? extends V> map)
 	{
 		for (K k : map.keySet()) {
@@ -108,6 +134,7 @@ public class BiMap<K, V> implements Map<K, V>, Serializable {
 		}
 	}
 
+	@Override
 	public V remove(Object key)
 	{
 		V v = main.remove(key);
@@ -116,19 +143,21 @@ public class BiMap<K, V> implements Map<K, V>, Serializable {
 		return v;
 	}
 
+	@Override
 	public int size()
 	{
 		return main.size();
 	}
 
 	@Override
-	public String toString()
-	{
-		return main.toString();
-	}
-
 	public Collection<V> values()
 	{
 		return main.values();
+	}
+
+	@Override
+	public String toString()
+	{
+		return main.toString();
 	}
 }

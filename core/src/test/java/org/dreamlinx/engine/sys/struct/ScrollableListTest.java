@@ -18,41 +18,48 @@
  *  along with DreamLinx. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.dreamlinx.engine.sys.data;
+package org.dreamlinx.engine.sys.struct;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import org.dreamlinx.engine.UnitTestSupport;
+import org.dreamlinx.engine.sys.struct.ScrollableList;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Marco Merli <yohji@dreamlinx.org>
  * @since 1.0
  */
-public class SortedIterator<M extends Comparable<M>> implements Iterable<M> {
+public class ScrollableListTest extends UnitTestSupport {
 
-	private Iterator<M> it;
+	private static ScrollableList<String> list;
 
-	public SortedIterator(Collection<M> collection) {
-
-		this(collection, false);
-	}
-
-	public SortedIterator(Collection<M> collection, boolean reversed) {
-
-		List<M> list = new ArrayList<>(collection);
-
-		Collections.sort(list);
-		if (reversed)
-			Collections.reverse(list);
-
-		it = list.iterator();
-	}
-
-	@Override
-	public Iterator<M> iterator()
+	@Before
+	public void before() throws Exception
 	{
-		return it;
+		list = new ScrollableList<String>();
+		list.add("Terminal");
+		list.add("Thunar");
+		list.add("Mousepad");
+		list.add("Nautilus");
+		list.add("GEdit");
+		list.add("Konqueror");
+		list.add("Kopete");
+	}
+
+	@Test
+	public void testScrollableList()
+	{
+		assertNotNull(list);
+		assertFalse(list.isEmpty());
+		assertNotNull(list.toString());
+	}
+
+	@Test
+	public void testScroll()
+	{
+		assertSame("Terminal", list.next());
+		assertSame("Thunar", list.next());
+		assertNotSame("Thunar", list.prev());
+		assertSame("Kopete", list.prev());
 	}
 }

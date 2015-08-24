@@ -18,7 +18,7 @@
  *  along with DreamLinx. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.dreamlinx.engine.sys.data;
+package org.dreamlinx.engine.sys.struct;
 
 import java.util.LinkedList;
 

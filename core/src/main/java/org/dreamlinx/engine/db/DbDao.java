@@ -53,7 +53,7 @@ import org.dreamlinx.engine.error.DatabaseException;
 import org.dreamlinx.engine.error.InitializationException;
 import org.dreamlinx.engine.model.Key;
 import org.dreamlinx.engine.model.Model;
-import org.dreamlinx.engine.sys.data.AutoCloseableIterator;
+import org.dreamlinx.engine.sys.struct.AutoCloseableIterator;
 
 /**
  * Support for database interaction.

@@ -18,7 +18,7 @@
  *  along with DreamLinx. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.dreamlinx.engine.sys.data;
+package org.dreamlinx.engine.sys.struct;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,6 +26,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 
 import org.dreamlinx.engine.UnitTestSupport;
+import org.dreamlinx.engine.sys.struct.MultiMap;
 import org.junit.Before;
 import org.junit.Test;
 

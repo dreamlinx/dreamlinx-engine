@@ -18,7 +18,7 @@
  *  along with DreamLinx. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.dreamlinx.engine.sys.data;
+package org.dreamlinx.engine.sys.struct;
 
 import org.dreamlinx.engine.UnitTestSupport;
 import org.junit.Before;
@@ -28,14 +28,14 @@ import org.junit.Test;
  * @author Marco Merli <yohji@dreamlinx.org>
  * @since 1.0
  */
-public class BiMapTest extends UnitTestSupport {
+public class BijectiveMapTest extends UnitTestSupport {
 
-	private static BiMap<String, String> map;
+	private static BijectiveMap<String, String> map;
 
 	@Before
 	public void before() throws Exception
 	{
-		map = new BiMap<>();
+		map = new BijectiveMap<>();
 
 		map.put("Xfce4", "Thunar");
 		map.put("Gnome", "Nautilus");
@@ -43,7 +43,7 @@ public class BiMapTest extends UnitTestSupport {
 	}
 
 	@Test
-	public void testReverseMap()
+	public void map()
 	{
 		assertNotNull(map);
 		assertFalse(map.isEmpty());
@@ -51,17 +51,17 @@ public class BiMapTest extends UnitTestSupport {
 	}
 
 	@Test
-	public void testGet()
+	public void get()
 	{
 		String value = map.get("Xfce4");
 		String aValue = map.get("Kde");
 
-		assertEquals("Xfce4", map.getKey(value));
-		assertEquals("Kde", map.getKey(aValue));
+		assertEquals("Xfce4", map.key(value));
+		assertEquals("Kde", map.key(aValue));
 	}
 
 	@Test
-	public void testContains()
+	public void contains()
 	{
 		assertTrue(map.containsKey("Xfce4"));
 		assertTrue(map.containsKey("Gnome"));

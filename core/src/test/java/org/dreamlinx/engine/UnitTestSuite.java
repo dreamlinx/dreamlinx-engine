@@ -37,10 +37,10 @@ import org.dreamlinx.engine.model.KeyTest;
 import org.dreamlinx.engine.model.ModelTest;
 import org.dreamlinx.engine.sys.DaemonPoolTest;
 import org.dreamlinx.engine.sys.OsTest;
-import org.dreamlinx.engine.sys.data.BiMapTest;
-import org.dreamlinx.engine.sys.data.HierarchyTreeTest;
-import org.dreamlinx.engine.sys.data.MultiMapTest;
-import org.dreamlinx.engine.sys.data.ScrollableListTest;
+import org.dreamlinx.engine.sys.struct.BijectiveMapTest;
+import org.dreamlinx.engine.sys.struct.HierarchyTreeTest;
+import org.dreamlinx.engine.sys.struct.MultiMapTest;
+import org.dreamlinx.engine.sys.struct.ScrollableListTest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
@@ -71,7 +71,7 @@ import org.junit.runners.Suite;
 	DaemonPoolTest.class, OsTest.class,
 	// data
 	HierarchyTreeTest.class, MultiMapTest.class,
-	BiMapTest.class, ScrollableListTest.class
+	BijectiveMapTest.class, ScrollableListTest.class
 })
 public class UnitTestSuite {
 

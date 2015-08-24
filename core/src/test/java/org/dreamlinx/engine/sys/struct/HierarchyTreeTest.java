@@ -18,7 +18,7 @@
  *  along with DreamLinx. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.dreamlinx.engine.sys.data;
+package org.dreamlinx.engine.sys.struct;
 
 import java.util.List;
 import java.util.Set;
@@ -38,25 +38,29 @@ public class HierarchyTreeTest extends UnitTestSupport {
 	@Before
 	public void before() throws Exception
 	{
-		tree = new HierarchyTree<Integer, String>();
-		tree.setRoot(1, "ORHVSUVHOWRUVHO");
-		tree.put(1, 11, "EWIVHOWEUVHWO");
-		tree.put(1, 12, "OBIHWROBIHROW");
-		tree.put(1, 13, "RBHRIBHOWWRTB");
-		tree.put(11, 111, "OEHBOEVHWEVYHWV");
-		tree.put(11, 112, "WIHOWGHOEGHOWEG");
-		tree.put(111, 1111, "BHWROUBHOWBHOWRTUHB");
-		tree.put(111, 1112, "RIBHORBHOWBHOBHOIUH");
-		tree.put(12, 121, "LDBEIBRPBWNPBNW");
-		tree.put(12, 122, "RTBPORJTBITBJPE");
-		tree.put(121, 1211, "RUBHROBHROBHIBHBUH");
-		tree.put(121, 1212, "WRTBHWROBUWRHBOHBO");
-		tree.put(13, 131, "WEGIHWOEGHOGWEOHIUH");
-		tree.put(131, 1311, "IHROBHRHBWOIBHWROBH");
+		tree = new HierarchyTree<Integer, String>(1, "ORHVSUVHOWRUVHO");
+
+		assertTrue(tree.put(1, 11, "EWIVHOWEUVHWO"));
+		assertTrue(tree.put(1, 12, "OBIHWROBIHROW"));
+		assertTrue(tree.put(1, 13, "RBHRIBHOWWRTB"));
+
+		assertTrue(tree.put(11, 111, "OEHBOEVHWEVYHWV"));
+		assertTrue(tree.put(11, 112, "WIHOWGHOEGHOWEG"));
+		assertTrue(tree.put(12, 121, "LDBEIBRPBWNPBNW"));
+		assertTrue(tree.put(12, 122, "RTBPORJTBITBJPE"));
+		assertTrue(tree.put(13, 131, "WEGIHWOEGHOGWEOHIUH"));
+
+		assertTrue(tree.put(111, 1111, "BHWROUBHOWBHOWRTUHB"));
+		assertTrue(tree.put(111, 1112, "RIBHORBHOWBHOBHOIUH"));
+		assertTrue(tree.put(121, 1211, "RUBHROBHROBHIBHBUH"));
+		assertTrue(tree.put(121, 1212, "WRTBHWROBUWRHBOHBO"));
+		assertTrue(tree.put(131, 1311, "IHROBHRHBWOIBHWROBH"));
+
+		assertFalse(tree.put(14, 141, "ASBKJFLJDFOVKJFGVCD"));
 	}
 
 	@Test
-	public void testContains()
+	public void contains()
 	{
 		assertTrue(tree.contains(1));
 		assertTrue(tree.contains(11));
@@ -72,13 +76,20 @@ public class HierarchyTreeTest extends UnitTestSupport {
 		assertFalse(tree.contains(14));
 		assertFalse(tree.contains(114));
 		assertFalse(tree.contains(1114));
-
-		assertNotSame(0, tree.size());
-		assertEquals(14, tree.size());
 	}
 
 	@Test
-	public void testGet()
+	public void size()
+	{
+		assertTrue(tree.equals(tree));
+
+		assertNotSame(0, tree.size());
+		assertEquals(14, tree.size());
+		assertEquals(3, tree.deep());
+	}
+
+	@Test
+	public void get()
 	{
 		assertEquals("ORHVSUVHOWRUVHO", tree.get(1));
 		assertEquals("EWIVHOWEUVHWO", tree.get(11));
@@ -90,6 +101,7 @@ public class HierarchyTreeTest extends UnitTestSupport {
 		assertEquals("RBHRIBHOWWRTB", tree.get(13));
 		assertEquals("WEGIHWOEGHOGWEOHIUH", tree.get(131));
 		assertEquals("IHROBHRHBWOIBHWROBH", tree.get(1311));
+
 		assertNull(tree.get(2));
 		assertNull(tree.get(14));
 		assertNull(tree.get(114));
@@ -97,7 +109,32 @@ public class HierarchyTreeTest extends UnitTestSupport {
 	}
 
 	@Test
-	public void testKeyValues()
+	public void remove()
+	{
+		String v = tree.remove(13);
+		assertStringNotBlank(v);
+		assertEquals("RBHRIBHOWWRTB", v);
+
+		assertNull(tree.get(13));
+		assertNull(tree.get(131));
+		assertNull(tree.get(1311));
+		assertEquals(11, tree.size());
+
+		v = tree.remove(1212);
+		assertStringNotBlank(v);
+		assertEquals("WRTBHWROBUWRHBOHBO", v);
+
+		assertNull(tree.get(1212));
+		assertEquals(10, tree.size());
+
+		tree.clear(1, "ABC");
+
+		assertEquals(1, tree.size());
+		assertEquals(1, tree.deep());
+	}
+
+	@Test
+	public void keyValues()
 	{
 		Set<Integer> keySet = tree.keySet();
 		List<String> values = tree.values();
@@ -106,6 +143,7 @@ public class HierarchyTreeTest extends UnitTestSupport {
 		assertTrue(keySet.contains(1));
 		assertTrue(keySet.contains(1112));
 		assertEquals(tree.size(), keySet.size());
+
 		assertNotNull(values);
 		assertTrue(values.contains("ORHVSUVHOWRUVHO"));
 		assertTrue(values.contains("RIBHORBHOWBHOBHOIUH"));
@@ -113,35 +151,32 @@ public class HierarchyTreeTest extends UnitTestSupport {
 	}
 
 	@Test
-	public void testMerge()
+	public void merge()
 	{
-		HierarchyTree<Integer, String> merge = new HierarchyTree<Integer, String>();
-		merge.setRoot(112, "IUHBOSJBHSDOFUBHSODB");
-		merge.put(112, 1121, "AVBOADFHBODFBHSDOFBH");
-		merge.put(112, 1122, "STIBUHWIBHWRTIBUHOIO");
-		merge.put(1121, 11211, "OSBIHSDOFBHSODFBHOHOI");
-		merge.put(1121, 11212, "RTIHUROHROBHOBUHUOIBH");
+		HierarchyTree<Integer, String> merge =
+			new HierarchyTree<Integer, String>(112, "IUHBOSJBHSDOFUBHSODB");
+
+		merge.put(112, 1123, "AVBOADFHBODFBHSDOFBH");
+		merge.put(112, 1124, "STIBUHWIBHWRTIBUHOIO");
+		merge.put(1123, 11231, "OSBIHSDOFBHSODFBHOHOI");
+		merge.put(11231, 112311, "EIUVTJEROTCIMJEROIGMC");
+		merge.put(1124, 11241, "RTIHUROHROBHOBUHUOIBH");
+		merge.put(1124, 11242, "ESRGCJNXFNVG,JCXDFCGN");
 		String image = tree.toString();
 
+		assertFalse(tree.equals(merge));
+		assertNotSame(tree.hashCode(), merge.hashCode());
 		assertTrue(tree.merge(merge));
-		assertTrue(tree.contains(1121));
-		assertTrue(tree.contains(1122));
-		assertTrue(tree.contains(11211));
-		assertTrue(tree.contains(11212));
-		assertEquals(18, tree.size());
+
+		assertTrue(tree.contains(1123));
+		assertTrue(tree.contains(1124));
+		assertTrue(tree.contains(11231));
+		assertTrue(tree.contains(11242));
+		assertEquals(20, tree.size());
+		assertEquals(5, tree.deep());
 
 		assertTrue(tree.merge(merge));
-		assertEquals(18, tree.size());
+		assertEquals(20, tree.size());
 		assertNotSame(image, tree.toString());
-	}
-
-	@Test
-	public void testRemove()
-	{
-		assertTrue(tree.remove(13));
-		assertNull(tree.get(13));
-		assertNull(tree.get(131));
-		assertNull(tree.get(1311));
-		assertEquals(11, tree.size());
 	}
 }
