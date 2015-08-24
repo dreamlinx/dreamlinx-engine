@@ -41,7 +41,7 @@ public class HierarchyTree<K, V> implements Serializable {
 	protected Map<K, TreeNode<K, V>> nodeMap;
 
 	protected int size = 1;
-	protected int deep = 1;
+	protected int deep = 0;
 
 	public HierarchyTree(K rootKey, V rootValue) {
 
@@ -108,8 +108,8 @@ public class HierarchyTree<K, V> implements Serializable {
 				nodeMap.remove(son.key);
 			}
 
-			if ((node = find(node.father)) != null)
-				node = node.sons.remove(key);
+			if (node.father != null)
+				node.father.sons.remove(key);
 
 			nodeMap.remove(key);
 			size -= sons.size() + 1;
@@ -209,7 +209,7 @@ public class HierarchyTree<K, V> implements Serializable {
 		List<TreeNode<K, V>> ancestry = new ArrayList<>(size);
 
 		TreeNode<K, V> father;
-		while ((father = find(node.father)) != null)
+		while ((father = node.father) != null)
 			ancestry.add(father);
 
 		return ancestry;

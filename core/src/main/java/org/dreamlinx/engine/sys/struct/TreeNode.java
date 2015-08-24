@@ -21,6 +21,7 @@
 package org.dreamlinx.engine.sys.struct;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -36,9 +37,11 @@ public final class TreeNode<K, V> implements Serializable {
 	private static final long serialVersionUID = 1385367675734224139L;
 
 	protected int level = 0;
+
 	protected K key;
 	protected V value;
-	protected K father;
+
+	protected TreeNode<K, V> father;
 	protected Map<K, TreeNode<K, V>> sons;
 
 	protected TreeNode(K key, V value) {
@@ -52,36 +55,31 @@ public final class TreeNode<K, V> implements Serializable {
 		this.value = value;
 
 		if (father != null) {
-			this.father = father.key;
+			this.father = father;
 			level = (father.level + 1);
 		}
 
 		sons = new LinkedHashMap<>();
 	}
 
-	protected TreeNode<K, V> find(K key)
+	public TreeNode<K, V> getFather()
 	{
-		TreeNode<K, V> node;
-		if (this.key.equals(key)) {
-			node = this;
-		}
-		else {
-			node = sons.get(key);
-			if (node == null) {
-				for (TreeNode<K, V> n : sons.values()) {
-					node = n.find(key);
-					if (node != null)
-						break;
-				}
-			}
-		}
-
-		return node;
+		return father;
 	}
 
-	protected void add(TreeNode<K, V> son)
+	public K getKey()
 	{
-		sons.put(son.key, son);
+		return key;
+	}
+
+	public V getValue()
+	{
+		return value;
+	}
+
+	public Collection<TreeNode<K, V>> getSons()
+	{
+		return sons.values();
 	}
 
 	public boolean isRoot()
@@ -132,5 +130,34 @@ public final class TreeNode<K, V> implements Serializable {
 
 		return String.format("{%d:%s[%s]}",
 			key, value, sb.toString());
+	}
+
+	//
+	// Internal
+	//
+
+	protected TreeNode<K, V> find(K key)
+	{
+		TreeNode<K, V> node;
+		if (this.key.equals(key)) {
+			node = this;
+		}
+		else {
+			node = sons.get(key);
+			if (node == null) {
+				for (TreeNode<K, V> n : sons.values()) {
+					node = n.find(key);
+					if (node != null)
+						break;
+				}
+			}
+		}
+
+		return node;
+	}
+
+	protected void add(TreeNode<K, V> son)
+	{
+		sons.put(son.key, son);
 	}
 }
