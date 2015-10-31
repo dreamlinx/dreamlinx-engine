@@ -26,5 +26,10 @@ package org.dreamlinx.engine.mq;
  */
 public abstract class MqSender extends MqContext {
 
+	protected MqSender(String bind) {
+
+		super(bind);
+	}
+
 	public abstract MqMessage send(MqMessage message) throws Exception;
 }

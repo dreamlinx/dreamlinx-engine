@@ -26,19 +26,19 @@ package org.dreamlinx.engine.mq;
  */
 public abstract class MqContext {
 
-	private String[] binds;
+	private String bind;
 
-	protected MqContext(String... binds) {
+	protected MqContext(String bind) {
 
-		this.binds = binds;
+		this.bind = bind;
 	}
 
 	public abstract void init() throws Exception;
 
 	public abstract void shutdown() throws Exception;
 
-	protected final String[] getBinds()
+	public final String getBind()
 	{
-		return binds;
+		return bind;
 	}
 }

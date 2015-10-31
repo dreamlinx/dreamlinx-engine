@@ -26,5 +26,15 @@ package org.dreamlinx.engine.mq;
  */
 public abstract class MqReceiver extends MqContext {
 
-	public abstract MqMessage receive() throws Exception;
+	protected MqReceiver(String binds) {
+
+		super(binds);
+	}
+
+	public abstract MqMessage receive(MqMessage reply) throws Exception;
+
+	public final MqMessage receive() throws Exception
+	{
+		return receive(null);
+	}
 }

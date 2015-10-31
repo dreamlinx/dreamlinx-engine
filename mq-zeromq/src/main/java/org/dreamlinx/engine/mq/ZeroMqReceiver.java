@@ -22,56 +22,55 @@ package org.dreamlinx.engine.mq;
 
 import java.nio.charset.Charset;
 
-import org.dreamlinx.engine.model.Model;
+import org.zeromq.ZMQ;
 
 /**
  * @author Marco Merli <yohji@dreamlinx.org>
  * @since 1.0
  */
-public class MqMessage extends Model {
+public class ZeroMqReceiver extends MqReceiver {
 
-	private static final long serialVersionUID = 2977876249250985881L;
+	private ZMQ.Context context;
+	private ZMQ.Socket responder;
+	private int typeFlag;
 
-	private byte[] data;
-	private Charset charset;
-	private String message;
+	public ZeroMqReceiver(String bind, int typeFlag) {
 
-	public MqMessage(String message) {
-
-		this.message = message;
-
-		data = message.getBytes();
-		charset = Charset.forName("UTF-16");
-	}
-
-	public MqMessage(byte[] data, Charset charset) {
-
-		this.data = data;
-		this.charset = charset;
-
-		message = new String(data, charset);
+		super(bind);
+		this.typeFlag = typeFlag;
 	}
 
 	@Override
-	protected final Object[] defineKey()
+	public void init() throws Exception
 	{
-		return new Object[] {
-			message
-		};
+		context = ZMQ.context(1);
+		responder = context.socket(typeFlag);
+		responder.connect(getBind());
 	}
 
-	public final String getMessage()
+	@Override
+	public MqMessage receive(MqMessage reply) throws Exception
 	{
-		return message;
+		while (! Thread.currentThread().isInterrupted()) {
+
+			Charset charset = (reply != null
+				? reply.getCharset() : Charset.defaultCharset());
+
+			MqMessage resp = new MqMessage(responder.recv(0), charset);
+
+			if (reply != null)
+				responder.send(reply.getMessage(), 0);
+
+			return resp;
+		}
+
+		return null;
 	}
 
-	public final byte[] getData()
+	@Override
+	public void shutdown() throws Exception
 	{
-		return data;
-	}
-
-	public final Charset getCharset()
-	{
-		return charset;
+		responder.close();
+		context.term();
 	}
 }
