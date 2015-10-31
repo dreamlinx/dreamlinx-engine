@@ -22,9 +22,7 @@ package org.dreamlinx.engine.db;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 
-import org.apache.commons.lang3.Validate;
 import org.apache.log4j.Logger;
 import org.dreamlinx.engine.core.Log;
 import org.dreamlinx.engine.error.DatabaseException;
@@ -83,76 +81,6 @@ public final class PostgresDbConnectionPool extends DbConnectionPool {
 			conn.setAutoCommit(false);
 
 			return conn;
-		}
-		catch (SQLException e) {
-			throw new DatabaseException(e);
-		}
-	}
-
-	@Override
-	public final boolean commit(Connection connection) throws DatabaseException
-	{
-		Validate.notNull(connection, "connection cannot be null.");
-		try {
-			if (! (connection.isClosed() || connection.isReadOnly())) {
-				connection.commit();
-				return true;
-			}
-
-			return false;
-		}
-		catch (SQLException e) {
-			throw new DatabaseException(e);
-		}
-	}
-
-	@Override
-	public final boolean rollback(Connection connection) throws DatabaseException
-	{
-		Validate.notNull(connection, "connection cannot be null.");
-		try {
-			if (! (connection.isClosed() || connection.isReadOnly())) {
-				connection.rollback();
-				return true;
-			}
-
-			return false;
-		}
-		catch (SQLException e) {
-			throw new DatabaseException(e);
-		}
-	}
-
-	@Override
-	public void set(String name, String value) throws DatabaseException
-	{
-		Validate.notBlank(name, " name cannot be null");
-		Validate.notBlank(value, "value cannot be null");
-
-		try (Connection conn = open();
-			Statement stmt = conn.createStatement()) {
-
-			stmt.execute(String.format("SET SESSION %s TO %s", name, value));
-			if (logger.isDebugEnabled())
-				logger.debug(String.format("Set parameter '%s' with value '%s'.", name, value));
-		}
-		catch (SQLException e) {
-			throw new DatabaseException(e);
-		}
-	}
-
-	@Override
-	public final boolean close(Connection connection) throws DatabaseException
-	{
-		Validate.notNull(connection, "connection cannot be null.");
-		try {
-			if (connection.isClosed())
-				return false;
-
-			connection.close();
-			connection = null; // From documentation
-
-			return true;
 		}
 		catch (SQLException e) {
 			throw new DatabaseException(e);
