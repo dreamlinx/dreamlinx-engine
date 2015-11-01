@@ -22,6 +22,7 @@ package org.dreamlinx.engine.mq;
 
 import java.nio.charset.Charset;
 
+import org.apache.commons.lang3.Validate;
 import org.dreamlinx.engine.model.Model;
 
 /**
@@ -31,6 +32,7 @@ import org.dreamlinx.engine.model.Model;
 public class MqMessage extends Model {
 
 	private static final long serialVersionUID = 2977876249250985881L;
+	private static final Charset DEFAULT_CHARSET = Charset.defaultCharset();
 
 	private byte[] data;
 	private Charset charset;
@@ -38,18 +40,33 @@ public class MqMessage extends Model {
 
 	public MqMessage(String message) {
 
-		this.message = message;
+		Validate.notBlank(message, "message can not be blank.");
 
+		this.message = message;
 		data = message.getBytes();
-		charset = Charset.forName("UTF-16");
+		charset = DEFAULT_CHARSET;
+	}
+
+	public MqMessage(byte[] data) {
+
+		this(data, null);
 	}
 
 	public MqMessage(byte[] data, Charset charset) {
 
-		this.data = data;
-		this.charset = charset;
+		Validate.notNull(data, "data can not be null.");
+		Validate.isTrue(data.length > 0, "data can not be empty.");
 
-		message = new String(data, charset);
+		this.data = data;
+
+		if (charset != null) {
+			message = new String(data, charset);
+			this.charset = charset;
+		}
+		else {
+			message = new String(data);
+			this.charset = DEFAULT_CHARSET;
+		}
 	}
 
 	@Override

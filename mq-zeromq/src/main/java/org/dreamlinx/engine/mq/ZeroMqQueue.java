@@ -20,16 +20,56 @@
 
 package org.dreamlinx.engine.mq;
 
+import org.zeromq.ZMQ;
+
 /**
  * @author Marco Merli <yohji@dreamlinx.org>
  * @since 1.0
  */
-public abstract class MqSender extends MqContext {
+public class ZeroMqQueue extends MqQueue {
 
-	protected MqSender(String bind) {
+	private ZMQ.Context context;
+	private ZMQ.Socket socket;
+	private int typeFlag;
+
+	public ZeroMqQueue(String bind, int typeFlag) {
 
 		super(bind);
+		this.typeFlag = typeFlag;
 	}
 
-	public abstract MqMessage send(MqMessage message) throws Exception;
+	@Override
+	public void init() throws Exception
+	{
+		context = ZMQ.context(1);
+		socket = context.socket(typeFlag);
+		socket.connect(getBind());
+	}
+
+	@Override
+	public void send(MqMessage message) throws Exception
+	{
+		socket.send(message.getMessage(), 0);
+	}
+
+	@Override
+	public MqMessage receive() throws Exception
+	{
+		while (! Thread.currentThread().isInterrupted()) {
+
+			byte[] data = socket.recv(0);
+
+			if (data != null)
+				return new MqMessage(data);
+		}
+
+		return null;
+	}
+
+	@Override
+	public void shutdown() throws Exception
+	{
+		socket.close();
+		context.term();
+	}
 }

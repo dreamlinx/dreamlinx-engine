@@ -10,18 +10,16 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.dreamlinx</groupId>
-	<artifactId>engine</artifactId>
-	<version>0</version>
-	<packaging>pom</packaging>
+	<groupId>org.dreamlinx.engine</groupId>
+	<artifactId>mq-rabbitmq</artifactId>
+	<version>0.999</version>
+	<packaging>jar</packaging>
 
-	<modules>
-		<module>core</module>
-		<module>db-postgres</module>
-		<module>db-oracle</module>
-		<module>mq-zeromq</module>
-		<module>mq-rabbitmq</module>
-	</modules>
+	<parent>
+		<groupId>org.dreamlinx</groupId>
+		<artifactId>engine</artifactId>
+		<version>0</version>
+	</parent>
 
 	<build>
 		<plugins>
@@ -31,7 +29,7 @@
 				<artifactId>maven-eclipse-plugin</artifactId>
 				<version>2.9</version>
 				<configuration>
-					<projectNameTemplate>dreamlinx-engine</projectNameTemplate>
+					<projectNameTemplate>dreamlinx-engine-mq-rabbitmq</projectNameTemplate>
 					<downloadSources>true</downloadSources>
 					<downloadJavadocs>true</downloadJavadocs>
 				</configuration>
@@ -39,11 +37,12 @@
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
 				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
+					<excludes>
+						<exclude>*log4j.xml</exclude>
+					</excludes>
 				</configuration>
 			</plugin>
 
@@ -57,10 +56,15 @@
 	<dependencies>
 
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.11</version>
-			<scope>test</scope>
+			<groupId>org.dreamlinx.engine</groupId>
+			<artifactId>core</artifactId>
+			<version>0.999</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.rabbitmq</groupId>
+			<artifactId>amqp-client</artifactId>
+			<version>3.5.6</version>
 		</dependency>
 
 	</dependencies>
