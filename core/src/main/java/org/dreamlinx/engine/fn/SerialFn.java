@@ -20,9 +20,12 @@
 
 package org.dreamlinx.engine.fn;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -36,7 +39,7 @@ import java.io.Serializable;
 public class SerialFn {
 
 	@SuppressWarnings("unchecked")
-	public static <T> T load(String filename, Class<T> type) throws Exception
+	public static <T extends Serializable> T load(String filename, Class<T> type) throws Exception
 	{
 		if (! (type instanceof Serializable))
 			throw new IllegalArgumentException("Type class must be implements Serializable");
@@ -71,6 +74,23 @@ public class SerialFn {
 	public static boolean delete(String filename) throws Exception
 	{
 		return new File(filename).delete();
+	}
+
+	public static ByteArrayInputStream serialize(Serializable obj) throws Exception
+	{
+		try (ByteArrayOutputStream binOut = new ByteArrayOutputStream();
+			ObjectOutputStream objOut = new ObjectOutputStream(binOut);) {
+			objOut.writeObject(obj);
+			return new ByteArrayInputStream(binOut.toByteArray());
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T extends Serializable> T deserialize(InputStream in, Class<T> type) throws Exception
+	{
+		try (ObjectInputStream objIn = new ObjectInputStream(in);) {
+			return (T) objIn.readObject();
+		}
 	}
 
 	private SerialFn() {}

@@ -48,6 +48,70 @@ public class Log {
 	protected static Logger engineLogger;
 
 	/**
+	 * Initialize the Logger to console only with a `Level`.
+	 * 
+	 * @param Level
+	 */
+	public static void init(Level level)
+	{
+		init(level, null, null, null, true);
+	}
+
+	/**
+	 * Initialize the Root Logger with the `Level`. The `filename` and `patter`,
+	 * if supplied, convey informations to setup an additional FILE appender.
+	 * The `hasConsole` governs the appender to console.
+	 * 
+	 * @param Level
+	 * @param String patternLayout
+	 * @param String filename
+	 * @param RollingPolicy rollingPolicy
+	 * @param Boolean hasConsole
+	 */
+	public static void init(Level level, String patternLayout, String filename, RollingPolicy rollingPolicy, boolean hasConsole)
+	{
+		if (rootLogger != null) {
+			rootLogger.warn("Logger already initialized.");
+			return;
+		}
+
+		if (StringUtils.isBlank(filename))
+			Validate.isTrue(hasConsole, "hasConsole must be true if filename is null");
+
+		rootLogger = LogManager.getRootLogger();
+		PatternLayout layout = new PatternLayout(
+			(patternLayout == null) ? DEFAULT_PATTERN_LAYOUT : patternLayout);
+
+		if (filename != null) {
+
+			RollingFileAppender app = new RollingFileAppender();
+			app.setName(APP_FILE_NAME);
+			app.setAppend(true);
+			app.setFile(filename);
+			app.setLayout(layout);
+
+			if (rollingPolicy != null)
+				app.setRollingPolicy(rollingPolicy);
+
+			app.activateOptions();
+			rootLogger.addAppender(app);
+		}
+
+		if (hasConsole) {
+
+			ConsoleAppender app = new ConsoleAppender();
+			app.setName(APP_CONSOLE_NAME);
+			app.setLayout(layout);
+
+			app.activateOptions();
+			rootLogger.addAppender(app);
+		}
+
+		if (level != null)
+			change(level);
+	}
+
+	/**
 	 * The Root Logger.
 	 * 
 	 * @return Logger
@@ -153,74 +217,6 @@ public class Log {
 			throw new InitializationException(Log.class);
 
 		getLogger(name).setLevel(level);
-	}
-
-	//
-	// Internal
-	//
-
-	/**
-	 * Initialize the Logger to console only with a `Level`.
-	 * 
-	 * @param Level
-	 */
-	protected static void init(Level level)
-	{
-		init(level, null, null, null, true);
-	}
-
-	/**
-	 * Initialize the Root Logger with the `Level`. The `filename` and `patter`,
-	 * if supplied, convey informations to setup an additional FILE appender.
-	 * The `hasConsole` governs the appender to console.
-	 * 
-	 * @param Level
-	 * @param String patternLayout
-	 * @param String filename
-	 * @param RollingPolicy rollingPolicy
-	 * @param Boolean hasConsole
-	 */
-	protected static void init(Level level, String patternLayout, String filename, RollingPolicy rollingPolicy, boolean hasConsole)
-	{
-		if (rootLogger != null) {
-			rootLogger.warn("Logger already initialized.");
-			return;
-		}
-
-		if (StringUtils.isBlank(filename))
-			Validate.isTrue(hasConsole, "hasConsole must be true if filename is null");
-
-		rootLogger = LogManager.getRootLogger();
-		PatternLayout layout = new PatternLayout(
-			(patternLayout == null) ? DEFAULT_PATTERN_LAYOUT : patternLayout);
-
-		if (filename != null) {
-
-			RollingFileAppender app = new RollingFileAppender();
-			app.setName(APP_FILE_NAME);
-			app.setAppend(true);
-			app.setFile(filename);
-			app.setLayout(layout);
-
-			if (rollingPolicy != null)
-				app.setRollingPolicy(rollingPolicy);
-
-			app.activateOptions();
-			rootLogger.addAppender(app);
-		}
-
-		if (hasConsole) {
-
-			ConsoleAppender app = new ConsoleAppender();
-			app.setName(APP_CONSOLE_NAME);
-			app.setLayout(layout);
-
-			app.activateOptions();
-			rootLogger.addAppender(app);
-		}
-
-		if (level != null)
-			change(level);
 	}
 
 	protected Log() {}

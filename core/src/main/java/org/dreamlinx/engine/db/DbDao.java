@@ -26,6 +26,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
+import java.net.URL;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -112,7 +113,7 @@ public abstract class DbDao<M extends Model> {
 					if (annName != null) {
 
 						// Column type
-						String columnName = ((DbColumnName) annName).value();
+						String columnName = ((DbColumnName) annName).value().toUpperCase();
 						columnTypeMapping.put(columnName, columnType);
 
 						// Column setter
@@ -121,7 +122,8 @@ public abstract class DbDao<M extends Model> {
 						columnSetterMapping.put(columnName, meth);
 
 						// Column getter
-						if (columnType.isAssignableFrom(Boolean.class))
+						if (columnType.isAssignableFrom(Boolean.class)
+							|| columnType.isAssignableFrom(boolean.class))
 							name = "is" + StringUtils.capitalize(fld.getName());
 						else
 							name = "get" + StringUtils.capitalize(fld.getName());
@@ -920,16 +922,17 @@ public abstract class DbDao<M extends Model> {
 		ResultSetMetaData rsmd = rs.getMetaData();
 
 		for (int i = 1; i <= rsmd.getColumnCount(); i++) {
+			String columnName = rsmd.getColumnName(i).toUpperCase();
 
-			Method setterMethod = columnSetterMapping.get(rsmd.getColumnName(i));
+			Method setterMethod = columnSetterMapping.get(columnName);
 			if (setterMethod == null) {
 
 				if (logger.isDebugEnabled())
-					logger.debug("Model has not field for binding the column '" + rsmd.getColumnName(i) + "'");
+					logger.debug("Model has not field for binding the column '" + columnName + "'");
 				continue;
 			}
 
-			Class<?> setterClass = columnTypeMapping.get(rsmd.getColumnName(i));
+			Class<?> setterClass = columnTypeMapping.get(columnName);
 			setterMethod.invoke(model, getObject(rs, i, setterClass));
 		}
 
@@ -947,25 +950,28 @@ public abstract class DbDao<M extends Model> {
 		else if (type.equals(String.class)) {
 			return rs.getString(index);
 		}
-		else if (type.equals(Integer.class)) {
+		else if (type.equals(Integer.class)
+			|| type.equals(int.class)) {
 			return rs.getInt(index);
 		}
-		else if (type.equals(Long.class)) {
+		else if (type.equals(Long.class)
+			|| type.equals(long.class)) {
 			return rs.getLong(index);
 		}
-		else if (type.equals(Boolean.class)) {
+		else if (type.equals(Boolean.class)
+			|| type.equals(boolean.class)) {
 			return rs.getBoolean(index);
 		}
-		else if (type.equals(Short.class)) {
-			return rs.getShort(index);
-		}
-		else if (type.equals(Double.class)) {
+		else if (type.equals(Double.class)
+			|| type.equals(double.class)) {
 			return rs.getDouble(index);
 		}
-		else if (type.equals(Float.class)) {
+		else if (type.equals(Float.class)
+			|| type.equals(float.class)) {
 			return rs.getFloat(index);
 		}
-		else if (type.equals(Short.class)) {
+		else if (type.equals(Short.class)
+			|| type.equals(short.class)) {
 			return rs.getShort(index);
 		}
 		else if (type.equals(Date.class)) {
@@ -982,6 +988,9 @@ public abstract class DbDao<M extends Model> {
 		else if (type.equals(byte[].class)) {
 			return rs.getBytes(index);
 		}
+		else if (InputStream.class.isAssignableFrom(type)) {
+			return rs.getBinaryStream(index);
+		}
 		else if (type.equals(BigDecimal.class)) {
 			return rs.getBigDecimal(index);
 		}
@@ -991,8 +1000,8 @@ public abstract class DbDao<M extends Model> {
 		else if (List.class.isAssignableFrom(type)) {
 			return Arrays.asList(rs.getArray(index).getArray());
 		}
-		else if (InputStream.class.isAssignableFrom(type)) {
-			return rs.getCharacterStream(index);
+		else if (type.equals(URL.class)) {
+			return rs.getURL(index);
 		}
 		else
 			throw new DatabaseException(String.format(
@@ -1013,8 +1022,8 @@ public abstract class DbDao<M extends Model> {
 				if (value == null) {
 					stmt.setNull(index, Types.NULL);
 				}
-				else if (value instanceof java.lang.Short) {
-					stmt.setShort(index, (java.lang.Short) value);
+				else if (value instanceof java.lang.String) {
+					stmt.setString(index, (java.lang.String) value);
 				}
 				else if (value instanceof java.lang.Integer) {
 					stmt.setInt(index, (java.lang.Integer) value);
@@ -1022,17 +1031,17 @@ public abstract class DbDao<M extends Model> {
 				else if (value instanceof java.lang.Long) {
 					stmt.setLong(index, (java.lang.Long) value);
 				}
-				else if (value instanceof java.lang.Double) {
-					stmt.setDouble(index, (java.lang.Double) value);
-				}
 				else if (value instanceof java.lang.Boolean) {
 					stmt.setBoolean(index, (java.lang.Boolean) value);
 				}
-				else if (value instanceof java.lang.String) {
-					stmt.setString(index, (java.lang.String) value);
+				else if (value instanceof java.lang.Double) {
+					stmt.setDouble(index, (java.lang.Double) value);
 				}
-				else if (value instanceof java.lang.Character) {
-					stmt.setString(index, ((java.lang.Character) value).toString());
+				else if (value instanceof java.lang.Float) {
+					stmt.setFloat(index, (java.lang.Float) value);
+				}
+				else if (value instanceof java.lang.Short) {
+					stmt.setShort(index, (java.lang.Short) value);
 				}
 				else if (value instanceof java.sql.Timestamp) {
 					stmt.setTimestamp(index, (java.sql.Timestamp) value);
@@ -1043,14 +1052,30 @@ public abstract class DbDao<M extends Model> {
 				else if (value instanceof java.util.Date) {
 					stmt.setDate(index, new java.sql.Date(((java.util.Date) value).getTime()));
 				}
-				else if (value instanceof java.sql.Array) {
-					stmt.setArray(index, ((java.sql.Array) value));
+				else if (value instanceof java.sql.Time) {
+					stmt.setTime(index, (java.sql.Time) value);
 				}
 				else if (value instanceof byte[]) {
 					stmt.setBytes(index, ((byte[]) value));
 				}
+				else if (value instanceof java.io.InputStream) {
+					stmt.setBinaryStream(index, ((java.io.InputStream) value));
+				}
+				else if (value instanceof java.math.BigDecimal) {
+					stmt.setBigDecimal(index, ((java.math.BigDecimal) value));
+				}
+				else if (value instanceof java.lang.Character) {
+					stmt.setString(index, ((java.lang.Character) value).toString());
+				}
+				else if (value instanceof java.sql.Array) {
+					stmt.setArray(index, ((java.sql.Array) value));
+				}
+				else if (value instanceof java.net.URL) {
+					stmt.setURL(index, ((java.net.URL) value));
+				}
 				else
-					stmt.setObject(index, value);
+					throw new DatabaseException(String.format(
+						"Type '%s' not yet supported.", value.getClass()));
 
 				index++;
 			}

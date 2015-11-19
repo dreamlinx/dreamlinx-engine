@@ -44,9 +44,10 @@ public class DbProperties implements Serializable {
 	private String username;
 	private String password;
 
-	private Short poolSize;
-	private Integer fetchSize;
-	private Integer commitSize;
+	private Short poolSize = 10;
+	private Integer fetchSize = 100;
+	private Integer commitSize = 1000;
+
 	private Integer notificationPort;
 
 	public String getSourceName()
