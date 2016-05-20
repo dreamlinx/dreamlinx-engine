@@ -33,24 +33,24 @@ public class DateFnTest extends UnitTestSupport {
 	public void compare() throws Exception
 	{
 		assertTrue(DateFn.compare(
-			toDate("20140430"), toDate("20140501"), DateFn.Mode.BEFORE));
+			toDate("20140430"), DateFn.Mode.BEFORE, toDate("20140501")));
 
 		assertTrue(DateFn.compare(
-			toDate("20140501"), toDate("20140501"), DateFn.Mode.BEFORE_EQUALS));
+			toDate("20140501"), DateFn.Mode.BEFORE_EQUALS, toDate("20140501")));
 
 		assertTrue(DateFn.compare(
-			toDate("20140430"), toDate("20140501"), DateFn.Mode.BEFORE_EQUALS));
+			toDate("20140430"), DateFn.Mode.BEFORE_EQUALS, toDate("20140501")));
 
 		assertTrue(DateFn.compare(
-			toDate("20140501"), toDate("20140501"), DateFn.Mode.EQUALS));
+			toDate("20140501"), DateFn.Mode.EQUALS, toDate("20140501")));
 
 		assertTrue(DateFn.compare(
-			toDate("20140502"), toDate("20140501"), DateFn.Mode.AFTER));
+			toDate("20140502"), DateFn.Mode.AFTER, toDate("20140501")));
 
 		assertTrue(DateFn.compare(
-			toDate("20140501"), toDate("20140501"), DateFn.Mode.AFTER_EQUALS));
+			toDate("20140501"), DateFn.Mode.AFTER_EQUALS, toDate("20140501")));
 
 		assertTrue(DateFn.compare(
-			toDate("20140502"), toDate("20140501"), DateFn.Mode.AFTER_EQUALS));
+			toDate("20140502"), DateFn.Mode.AFTER_EQUALS, toDate("20140501")));
 	}
 }

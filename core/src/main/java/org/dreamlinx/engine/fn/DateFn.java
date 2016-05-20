@@ -56,10 +56,11 @@ public final class DateFn {
 	 * @param Date a
 	 * @param Date b
 	 * @param Mode mode
+	 * 
 	 * @return boolean
 	 * @throws Exception
 	 */
-	public static boolean compare(Date a, Date b, Mode mode)
+	public static boolean compare(Date a, Mode mode, Date b)
 	{
 		Validate.notNull(mode, "comparison mode cannot be null");
 
@@ -98,7 +99,7 @@ public final class DateFn {
 	 */
 	public static boolean compareToday(Date date, Mode mode)
 	{
-		return compare(date, today(), mode);
+		return compare(date, mode, today());
 	}
 
 	/**

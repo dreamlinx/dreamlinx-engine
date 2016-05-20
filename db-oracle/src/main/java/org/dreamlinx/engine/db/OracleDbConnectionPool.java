@@ -20,10 +20,11 @@
 
 package org.dreamlinx.engine.db;
 
+import java.lang.Thread.State;
 import java.sql.SQLException;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import oracle.jdbc.OracleConnection;
@@ -31,6 +32,10 @@ import oracle.jdbc.OracleStatement;
 import oracle.jdbc.aq.AQNotificationRegistration;
 import oracle.jdbc.dcn.DatabaseChangeRegistration;
 import oracle.sql.StructDescriptor;
+import oracle.ucp.UniversalConnectionPoolAdapter;
+import oracle.ucp.UniversalConnectionPoolException;
+import oracle.ucp.admin.UniversalConnectionPoolManager;
+import oracle.ucp.admin.UniversalConnectionPoolManagerImpl;
 import oracle.ucp.jdbc.PoolDataSource;
 import oracle.ucp.jdbc.PoolDataSourceFactory;
 
@@ -51,10 +56,13 @@ import org.dreamlinx.engine.fn.MathFn;
 public final class OracleDbConnectionPool extends DbConnectionPool {
 
 	private static final Logger logger = Log.getEngineLogger();
+	private static final String NTF_LISTENER_CLASS = "oracle.jdbc.driver.NTFListener";
 
+	private UniversalConnectionPoolManager poolManager;
 	private PoolDataSource connPool;
-	private List<DatabaseChangeRegistration> notifRegs;
-	private List<AQNotificationRegistration> queueRegs;
+
+	private static final Map<Long, DatabaseChangeRegistration> notifRegs = new LinkedHashMap<>();
+	private static final Map<String, AQNotificationRegistration> queueRegs = new LinkedHashMap<>();
 
 	public OracleDbConnectionPool(DbProperties properties) {
 
@@ -65,9 +73,12 @@ public final class OracleDbConnectionPool extends DbConnectionPool {
 	public void init() throws DatabaseException
 	{
 		try {
+			poolManager = UniversalConnectionPoolManagerImpl.getUniversalConnectionPoolManager();
+
 			connPool = PoolDataSourceFactory.getPoolDataSource();
 			connPool.setConnectionFactoryClassName("oracle.jdbc.pool.OracleDataSource");
 			connPool.setDataSourceName(properties.getSourceName());
+			connPool.setValidateConnectionOnBorrow(true);
 
 			if (StringUtils.isNotBlank(properties.getUrl()))
 				connPool.setURL("jdbc:oracle:thin:@" + properties.getUrl());
@@ -79,20 +90,19 @@ public final class OracleDbConnectionPool extends DbConnectionPool {
 
 			connPool.setUser(properties.getUsername());
 			connPool.setPassword(properties.getPassword());
-
 			connPool.setInitialPoolSize(5);
 			connPool.setMinPoolSize(5);
 			connPool.setMaxPoolSize(properties.getPoolSize());
 
-			notifRegs = new LinkedList<>();
-			queueRegs = new LinkedList<>();
+			poolManager.createConnectionPool((UniversalConnectionPoolAdapter) connPool);
+			poolManager.startConnectionPool(properties.getSourceName());
 
 			if (logger.isDebugEnabled())
 				logger.debug(String.format("ConnectionPool '%s' connected to '%s:%d/%s'",
 					connPool.getDataSourceName(), connPool.getServerName(),
 					connPool.getPortNumber(), connPool.getDatabaseName()));
 		}
-		catch (SQLException e) {
+		catch (Exception e) {
 			throw new DatabaseException(e);
 		}
 	}
@@ -100,7 +110,18 @@ public final class OracleDbConnectionPool extends DbConnectionPool {
 	@Override
 	public void shutdown() throws DatabaseException
 	{
-		unregisterAll();
+		if (logger.isDebugEnabled())
+			logger.debug("Shutting down Connection pool...");
+
+		try {
+			unregisterAll();
+			poolManager.purgeConnectionPool(properties.getSourceName());
+		}
+		catch (UniversalConnectionPoolException e) {
+			// Suppressed
+		}
+
+		logger.info("Connection pool is terminated.");
 	}
 
 	@Override
@@ -163,7 +184,7 @@ public final class OracleDbConnectionPool extends DbConnectionPool {
 				throw e;
 			}
 
-			notifRegs.add(dcr);
+			notifRegs.put(dcr.getRegId(), dcr);
 			notif.setRegId(dcr.getRegId());
 
 			if (logger.isInfoEnabled())
@@ -202,7 +223,7 @@ public final class OracleDbConnectionPool extends DbConnectionPool {
 			AQNotificationRegistration reg = regArr[0];
 			reg.addListener(queue);
 
-			queueRegs.add(reg);
+			queueRegs.put(reg.getQueueName(), reg);
 
 			if (logger.isInfoEnabled())
 				logger.info(String.format("The notification '%s' on queue is now in listening.",
@@ -232,22 +253,20 @@ public final class OracleDbConnectionPool extends DbConnectionPool {
 
 		try (OracleConnection conn = (OracleConnection) open()) {
 
-			for (Iterator<DatabaseChangeRegistration> it = notifRegs.iterator(); it.hasNext();) {
-				DatabaseChangeRegistration reg = it.next();
+			DatabaseChangeRegistration reg = notifRegs.get(notification.getRegId());
+			if (reg != null) {
 
-				if (notification.getRegId().equals(reg.getRegId())) {
-					conn.unregisterDatabaseChangeNotification(reg);
+				conn.unregisterDatabaseChangeNotification(reg);
 
-					if (logger.isDebugEnabled())
-						logger.debug(String.format(
-							"Notifications with regId '%d' is unregistered now.",
-							notification.getRegId()));
+				if (logger.isDebugEnabled())
+					logger.debug(String.format(
+						"Notifications with regId '%d' is unregistered now.",
+						notification.getRegId()));
 
-					notification.setRegId(null);
-					it.remove();
+				notifRegs.remove(notification.getRegId());
+				notification.setRegId(null);
 
-					return true;
-				}
+				return true;
 			}
 		}
 		catch (SQLException e) {
@@ -271,21 +290,17 @@ public final class OracleDbConnectionPool extends DbConnectionPool {
 
 		try (OracleConnection conn = (OracleConnection) open()) {
 
-			for (Iterator<AQNotificationRegistration> it = queueRegs.iterator(); it.hasNext();) {
-				AQNotificationRegistration reg = it.next();
+			AQNotificationRegistration reg = queueRegs.get(queue.getQueueName());
+			if (reg != null) {
+				conn.unregisterAQNotification(reg);
 
-				if (reg.getQueueName().equals(queue.getQueueName())) {
-					conn.unregisterAQNotification(reg);
+				if (logger.isDebugEnabled())
+					logger.debug(String.format(
+						"Notifications on queue '%d' is unregistered now.",
+						queue.getQueueName()));
 
-					if (logger.isDebugEnabled())
-						logger.debug(String.format(
-							"Notifications on queue '%d' is unregistered now.",
-							queue.getQueueName()));
-
-					it.remove();
-
-					return true;
-				}
+				queueRegs.remove(queue.getQueueName());
+				return true;
 			}
 		}
 		catch (SQLException e) {
@@ -297,19 +312,17 @@ public final class OracleDbConnectionPool extends DbConnectionPool {
 
 	/**
 	 * Unregister all notification listeners.
-	 * 
-	 * @throws DatabaseException
 	 */
-	public void unregisterAll() throws DatabaseException
+	public boolean unregisterAll()
 	{
 		try (OracleConnection conn = (OracleConnection) open()) {
 
-			for (Iterator<DatabaseChangeRegistration> it = notifRegs.iterator(); it.hasNext();) {
+			for (Iterator<DatabaseChangeRegistration> it = notifRegs.values().iterator(); it.hasNext();) {
 				conn.unregisterDatabaseChangeNotification(it.next());
 				it.remove();
 			}
 
-			for (Iterator<AQNotificationRegistration> it = queueRegs.iterator(); it.hasNext();) {
+			for (Iterator<AQNotificationRegistration> it = queueRegs.values().iterator(); it.hasNext();) {
 				conn.unregisterAQNotification(it.next());
 				it.remove();
 			}
@@ -318,7 +331,22 @@ public final class OracleDbConnectionPool extends DbConnectionPool {
 				logger.info("All notifications are unregistered now.");
 		}
 		catch (SQLException e) {
-			throw new DatabaseException(e);
+			// Suppressed
 		}
+
+		Map<Thread, StackTraceElement[]> threads = Thread.getAllStackTraces();
+		for (Thread th : threads.keySet()) {
+
+			StackTraceElement[] stacks = threads.get(th);
+			if (stacks != null && stacks.length > 0) {
+				for (StackTraceElement stack : stacks)
+
+					if (stack.getClassName().equals(NTF_LISTENER_CLASS)
+						&& th.getState().equals(State.RUNNABLE))
+						return false;
+			}
+		}
+
+		return true;
 	}
 }

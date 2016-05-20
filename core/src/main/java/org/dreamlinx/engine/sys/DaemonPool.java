@@ -39,7 +39,7 @@ import org.dreamlinx.engine.error.InitializationException;
  */
 public class DaemonPool {
 
-	private static final Logger logger = Log.getEngineLogger();
+	private static final Logger logger = Log.getLogger();
 
 	private static ThreadPoolNotifier pool;
 
@@ -78,12 +78,12 @@ public class DaemonPool {
 		if (pool == null)
 			return null; // Already shut down
 
-		List<Runnable> stillRun = null;
+		List<Runnable> notYetExec = null;
 		if (! (pool.isShutdown() && pool.isTerminated())) {
 
 			pool.shutdown();
 			if (logger.isDebugEnabled())
-				logger.debug("Daemons still running: #" + getRunningCount());
+				logger.debug("Daemons in execution: #" + getRunningCount());
 
 			logger.debug("Waiting for all deamons to terminated..");
 			if (! pool.awaitTermination(timeout.longValue(), unit)) {
@@ -93,9 +93,9 @@ public class DaemonPool {
 					logger.info(String.format(m, timeout, unit));
 				}
 
-				stillRun = pool.shutdownNow();
+				notYetExec = pool.shutdownNow();
 				if (logger.isDebugEnabled())
-					logger.debug("Killed daemons: " + stillRun);
+					logger.debug("Daemons not yet in execution: " + notYetExec);
 			}
 
 			if (logger.isDebugEnabled())
@@ -104,7 +104,7 @@ public class DaemonPool {
 		else
 			logger.warn("Daemon pool is already terminated.");
 
-		return stillRun;
+		return notYetExec;
 	}
 
 	/**
@@ -124,11 +124,11 @@ public class DaemonPool {
 			return null;
 		}
 
-		List<Runnable> stillRun = pool.shutdownNow();
+		List<Runnable> notYetExec = pool.shutdownNow();
 		if (logger.isInfoEnabled())
 			logger.info("Daemon pool is halted.");
 
-		return stillRun;
+		return notYetExec;
 	}
 
 	/**
@@ -143,8 +143,13 @@ public class DaemonPool {
 	public static <T> Future<T> startForFuture(Daemon<T> daemon)
 	{
 		Validate.notNull(daemon, "daemon cannot be null");
-		if (pool == null || pool.isShutdown())
+		if (pool == null)
 			throw new InitializationException(DaemonPool.class);
+
+		if (pool.isShutdown() || pool.isTerminated()) {
+			logger.warn("Daemon pool is already terminated.");
+			return null;
+		}
 
 		return pool.submit(daemon);
 	}
@@ -159,7 +164,13 @@ public class DaemonPool {
 	 */
 	public static <T> T startForResult(Daemon<T> daemon) throws Exception
 	{
-		return startForFuture(daemon).get();
+		Future<T> future = startForFuture(daemon);
+
+		T res = null;
+		if (future != null)
+			res = future.get();
+
+		return res;
 	}
 
 	/**
