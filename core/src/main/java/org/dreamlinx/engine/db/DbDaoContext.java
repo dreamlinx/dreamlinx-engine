@@ -21,7 +21,9 @@
 package org.dreamlinx.engine.db;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.dreamlinx.engine.model.Model;
 
@@ -38,20 +40,21 @@ public class DbDaoContext {
 		context = new HashMap<>();
 	}
 
-	public static DbDao<? extends Model> get(Class<? extends DbDao<? extends Model>> daoClass)
+	@SuppressWarnings("unchecked")
+	public static <T extends DbDao<? extends Model>> T get(Class<T> daoClass)
 		throws Exception
 	{
-		DbDao<? extends Model> dao = context.get(daoClass);
+		T dao = (T) context.get(daoClass);
 		if (dao == null)
 			dao = renew(daoClass);
 
 		return dao;
 	}
 
-	public static DbDao<? extends Model> renew(Class<? extends DbDao<? extends Model>> daoClass)
+	public static <T extends DbDao<? extends Model>> T renew(Class<T> daoClass)
 		throws Exception
 	{
-		DbDao<? extends Model> dao = daoClass.newInstance();
+		T dao = daoClass.newInstance();
 		context.put(daoClass, dao);
 
 		return dao;
@@ -59,9 +62,11 @@ public class DbDaoContext {
 
 	public static void free()
 	{
-		for (Class<? extends DbDao<? extends Model>> key : context.keySet()) {
-			context.put(key, null);
-			context.remove(key);
+		for (Iterator<Entry<Class<? extends DbDao<? extends Model>>, DbDao<? extends Model>>> it = context.entrySet().iterator(); it.hasNext();) {
+
+			Entry<Class<? extends DbDao<? extends Model>>, DbDao<? extends Model>> entry = it.next();
+			entry.setValue(null);
+			it.remove();
 		}
 	}
 }
